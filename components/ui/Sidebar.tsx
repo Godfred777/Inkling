@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Home,
   CheckSquare,
@@ -9,8 +10,10 @@ import {
   Plus,
   MessageSquare,
   Sparkles,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Avatar } from '@/components/ui/Avatar';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -21,20 +24,30 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAuth();
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-surface-container-low border-r border-outline-variant/15">
       {/* User Profile Section */}
       <div className="p-6 border-b border-outline-variant/15">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container font-display font-semibold">
-            IN
-          </div>
-          <div>
-            <h2 className="font-display font-semibold text-on-surface">Inkling</h2>
-            <p className="text-label-md text-on-surface-variant">Marketing Team</p>
+        <div className="flex items-center gap-3 mb-4">
+          <Avatar user={user} size="md" />
+          <div className="flex-1 min-w-0">
+            <h2 className="font-display font-semibold text-on-surface truncate">
+              {user?.name || 'Guest'}
+            </h2>
+            <p className="text-label-md text-on-surface-variant truncate">
+              {user?.email || 'Not signed in'}
+            </p>
           </div>
         </div>
+        <Link
+          href="/settings"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-md transition-all"
+        >
+          <Settings className="w-4 h-4" />
+          <span>Settings</span>
+        </Link>
       </div>
 
       {/* Navigation */}

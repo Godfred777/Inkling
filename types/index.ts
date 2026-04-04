@@ -63,3 +63,66 @@ export interface TaskBoard {
   review: Task[];
   done: Task[];
 }
+
+// Authentication Types
+export interface AuthSession {
+  user: User & {
+    preferences?: UserPreferences;
+  };
+  token: string;
+  expiresAt: string;
+}
+
+export interface UserPreferences {
+  theme: 'dark' | 'light';
+  notifications: {
+    email: boolean;
+    push: boolean;
+    taskUpdates: boolean;
+    projectUpdates: boolean;
+  };
+  language: string;
+  timezone: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+  expiresAt: string;
+}
+
+export interface AuthContextType {
+  user: User | null;
+  session: AuthSession | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
+  logout: () => void;
+  updateProfile: (data: Partial<User>) => Promise<void>;
+  updatePreferences: (data: Partial<UserPreferences>) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+}

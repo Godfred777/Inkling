@@ -1,7 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { Bell, Search, Settings } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface HeaderProps {
   title: string;
@@ -9,6 +12,8 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
+  const { user } = useAuth();
+
   return (
     <header className="sticky top-0 z-10 bg-surface/80 backdrop-blur-glass border-b border-outline-variant/15">
       <div className="flex items-center justify-between px-8 py-4">
@@ -42,15 +47,16 @@ export function Header({ title, subtitle }: HeaderProps) {
             <span className="absolute top-1 right-1 w-2 h-2 bg-tertiary rounded-full" />
           </button>
 
-          {/* Settings */}
-          <button className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-md transition-all">
+          {/* Settings Link */}
+          <Link
+            href="/settings"
+            className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-md transition-all"
+          >
             <Settings className="w-5 h-5" />
-          </button>
+          </Link>
 
           {/* User Avatar */}
-          <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container text-label-sm font-semibold">
-            JD
-          </div>
+          <Avatar user={user} size="md" />
         </div>
       </div>
     </header>
