@@ -136,11 +136,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
       
-      const updatedUser = { 
-        ...session.user, 
-        preferences: { ...session.user.preferences, ...data } 
+      const updatedUser = {
+        ...session.user,
+        ...data
       };
-      const updatedSession = { ...session, user: updatedUser };
+      const updatedSession: AuthSession = { ...session, user: updatedUser };
       
       setSession(updatedSession);
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedSession));

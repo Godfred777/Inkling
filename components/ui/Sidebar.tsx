@@ -31,7 +31,7 @@ export function Sidebar() {
       {/* User Profile Section */}
       <div className="p-6 border-b border-outline-variant/15">
         <div className="flex items-center gap-3 mb-4">
-          <Avatar user={user} size="md" />
+          <Avatar user={user ?? undefined} size="md" />
           <div className="flex-1 min-w-0">
             <h2 className="font-display font-semibold text-on-surface truncate">
               {user?.name || 'Guest'}

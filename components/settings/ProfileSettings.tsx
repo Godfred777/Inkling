@@ -38,7 +38,7 @@ export function ProfileSettings({ onSave }: ProfileSettingsProps) {
       <Card className="p-6">
         <div className="flex items-center gap-6">
           <div className="relative">
-            <Avatar user={user} size="lg" />
+            <Avatar user={user ?? undefined} size="lg" />
             <button className="absolute bottom-0 right-0 p-2 bg-primary text-on-primary rounded-full hover:bg-primary-fixed transition-colors">
               <Camera className="h-4 w-4" />
             </button>
