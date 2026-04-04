@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --foreground-rgb: 220, 225, 251;
+  --background-start-rgb: 12, 19, 36;
+  --background-end-rgb: 12, 19, 36;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+/* The No-Line Rule: Avoid borders, use tonal layering instead */
+* {
+  border-color: transparent;
+}
+
+/* Custom Scrollbar for Dark Mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c1324;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a3145;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #323a52;
+}
+
+/* Typography Utilities */
+.font-display {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+}
+
+.font-body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: rgba(39, 45, 68, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Cognitive Hub Gradient */
+.cognitive-hub {
+  background: linear-gradient(
+    135deg,
+    rgba(192, 193, 255, 0.02) 0%,
+    rgba(255, 182, 149, 0.02) 100%
+  );
+}
+
+/* Button Hover Effect */
+.btn-secondary-hover {
+  transition: background-color 0.2s ease;
+}
+
+.btn-secondary-hover:hover {
+  background-color: #2a3145;
+}
+
+/* Input Focus Glow */
+.input-focus-glow:focus {
+  box-shadow: 0 0 0 1px rgba(192, 193, 255, 0.15);
+}

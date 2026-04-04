@@ -1,0 +1,77 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  Home,
+  CheckSquare,
+  FolderOpen,
+  Plus,
+  MessageSquare,
+  Sparkles,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const navigation = [
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'My Tasks', href: '/tasks', icon: CheckSquare },
+  { name: 'Resource Hub', href: '/resources', icon: FolderOpen },
+  { name: 'AI Architect', href: '/architect', icon: MessageSquare, primary: true },
+];
+
+export function Sidebar() {
+  const pathname = usePathname();
+
+  return (
+    <aside className="fixed left-0 top-0 h-full w-64 bg-surface-container-low border-r border-outline-variant/15">
+      {/* User Profile Section */}
+      <div className="p-6 border-b border-outline-variant/15">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container font-display font-semibold">
+            IN
+          </div>
+          <div>
+            <h2 className="font-display font-semibold text-on-surface">Inkling</h2>
+            <p className="text-label-md text-on-surface-variant">Marketing Team</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="p-4 space-y-1">
+        {navigation.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200',
+                'text-body-md font-medium',
+                item.primary
+                  ? 'bg-primary-container text-on-primary-container hover:bg-primary hover:shadow-ambient'
+                  : isActive
+                  ? 'bg-surface-container-high text-on-surface'
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+              )}
+            >
+              <item.icon className="w-5 h-5" />
+              <span>{item.name}</span>
+              {item.primary && (
+                <Sparkles className="w-4 h-4 ml-auto opacity-60" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* New Project Button */}
+      <div className="absolute bottom-6 left-4 right-4">
+        <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-surface-bright hover:bg-surface-container-highest text-on-surface rounded-md transition-all duration-200 font-medium">
+          <Plus className="w-5 h-5" />
+          <span>New Project</span>
+        </button>
+      </div>
+    </aside>
+  );
+}
