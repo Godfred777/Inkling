@@ -1,4 +1,4 @@
-import { Project, Task, User, Resource, AIInsight } from '@/types';
+import { Project, Task, User, Resource, AIInsight, Notification } from '@/types';
 
 // Dummy Users
 export const users: User[] = [
@@ -196,5 +196,80 @@ export const aiInsights: AIInsight[] = [
     content: 'Pro-Tip: Set up custom conversion events in GA4 before launch. This will make post-launch analysis much easier.',
     type: 'pro-tip',
     createdAt: '2024-04-01',
+  },
+];
+
+// Dummy Notifications
+export const notifications: Notification[] = [
+  {
+    id: '1',
+    title: 'Task Assigned',
+    message: 'Dorcas Smith assigned you "Design homepage mockups" in E-commerce Platform Redesign',
+    type: 'info',
+    read: false,
+    createdAt: '2024-04-02T10:30:00',
+    link: '/tasks',
+  },
+  {
+    id: '2',
+    title: 'Task Completed',
+    message: '"Write product descriptions" has been marked as done by Dorcas Smith',
+    type: 'success',
+    read: false,
+    createdAt: '2024-04-02T09:15:00',
+    link: '/tasks',
+  },
+  {
+    id: '3',
+    title: 'Deadline Approaching',
+    message: '"Implement user authentication" is due in 3 days',
+    type: 'warning',
+    read: false,
+    createdAt: '2024-04-01T16:45:00',
+    link: '/tasks',
+  },
+  {
+    id: '4',
+    title: 'New Comment',
+    message: 'Emanuel Johnson commented on "Set up analytics tracking": "Looks great, just a few minor adjustments needed"',
+    type: 'info',
+    read: true,
+    createdAt: '2024-04-01T14:20:00',
+    link: '/tasks',
+  },
+  {
+    id: '5',
+    title: 'Project Update',
+    message: 'Marketing Campaign Q2 has been updated with new assets and resources',
+    type: 'info',
+    read: true,
+    createdAt: '2024-04-01T11:00:00',
+    link: '/resources',
+  },
+  {
+    id: '6',
+    title: 'Build Failed',
+    message: 'The latest deployment for E-commerce Platform Redesign encountered an error',
+    type: 'error',
+    read: true,
+    createdAt: '2024-03-31T18:30:00',
+    link: '/tasks',
+  },
+  {
+    id: '7',
+    title: 'Review Requested',
+    message: 'Emanuel Johnson requested your review on "Set up analytics tracking"',
+    type: 'warning',
+    read: true,
+    createdAt: '2024-03-31T10:00:00',
+    link: '/tasks',
+  },
+  {
+    id: '8',
+    title: 'Welcome to Inkling!',
+    message: 'Get started by exploring your dashboard and setting up your first project',
+    type: 'success',
+    read: true,
+    createdAt: '2024-03-15T08:00:00',
   },
 ];

@@ -49,6 +49,16 @@ export interface AIInsight {
   createdAt: string;
 }
 
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  read: boolean;
+  createdAt: string;
+  link?: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
