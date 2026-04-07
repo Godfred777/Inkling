@@ -4,7 +4,7 @@ A cognitive canvas for AI-assisted project management and collaboration.
 
 ## Overview
 
-Inkling is a next-generation project management platform that integrates AI assistance directly into your workflow. Built with the "Cognitive Canvas" design philosophy, it provides an obsidian-toned, depth-rich interface that feels like a high-end studio for your ideas.
+Inkling is a next-generation project management platform that integrates AI assistance directly into your workflow. Built with the "Cognitive Canvas" design philosophy, it provides a beautiful, themeable interface that adapts to your preference - from luminous light mode to deep obsidian dark mode.
 
 ## Features
 
@@ -16,16 +16,27 @@ Inkling is a next-generation project management platform that integrates AI assi
 - **Resource Hub**: Centralized storage for documents, presentations, and demos
 - **AI Assistance**: Context-aware help for individual tasks
 - **Global Sidebar**: Persistent navigation across all views
+- **Theme Toggle**: Switch between light and dark modes instantly
 
 ## Design System
 
-Inkling uses "The Cognitive Canvas" design system with:
+Inkling uses "The Cognitive Canvas" design system with dual themes:
 
-- **Colors**: Obsidian-toned palette with indigo accents
+### Light Mode (Luminous Intelligence)
+- **Colors**: Clean, airy palette with deep indigo accents
+- **Typography**: Manrope (display) + Inter (body)
+- **Feel**: Editorial-grade, premium workspace
+
+### Dark Mode (Obsidian Intelligence)
+- **Colors**: Deep obsidian with indigo pulse and warm accents
 - **Typography**: Space Grotesk (display) + Inter (body)
+- **Feel**: Immersive, focused studio environment
+
+### Core Principles
 - **No-Line Rule**: Boundaries defined by tonal shifts, not borders
 - **Glassmorphism**: Backdrop blur for floating overlays
 - **Tonal Layering**: Depth through color, not shadows
+- **AI Accent**: Tertiary colors highlight intelligent features
 
 ## Tech Stack
 

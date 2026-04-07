@@ -6,83 +6,93 @@ const config: Config = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // The Cognitive Canvas - Dark Mode Palette
-        surface: '#0c1324', // The Void (Background)
-        'surface-container-lowest': '#12182a',
-        'surface-container-low': '#151b2d',
-        'surface-container': '#191f31',
-        'surface-container-high': '#23293c',
-        'surface-container-highest': '#2a3145',
-        'surface-bright': '#323a52',
-        'surface-variant': '#1f2538',
+        // The Cognitive Canvas - Light & Dark Mode Palette
+        // Using CSS variables for theme switching
+        surface: 'var(--surface)',
+        'surface-container': 'var(--surface-container)',
+        'surface-container-low': 'var(--surface-container-low)',
+        'surface-container-lowest': 'var(--surface-container-lowest)',
+        'surface-container-high': 'var(--surface-container-high)',
+        'surface-container-highest': 'var(--surface-container-highest)',
+        'surface-bright': 'var(--surface-bright)',
+        'surface-dim': 'var(--surface-dim)',
+        'surface-variant': 'var(--surface-variant)',
         
-        // Primary - The Primary Pulse (Indigo)
-        primary: '#c0c1ff',
-        'primary-fixed': '#dce1fb',
-        'primary-container': '#4b4dd8',
-        'on-primary': '#0c1324',
-        'on-primary-container': '#ffffff',
+        // Primary - The Intelligence Color
+        primary: 'var(--primary)',
+        'primary-fixed': 'var(--primary-fixed)',
+        'primary-container': 'var(--primary-container)',
+        'on-primary': 'var(--on-primary)',
+        'on-primary-container': 'var(--on-primary-container)',
         
         // Secondary
-        secondary: '#a8b5ff',
-        'secondary-container': '#3a3db8',
-        'on-secondary': '#0c1324',
-        'on-secondary-container': '#ffffff',
+        secondary: 'var(--secondary)',
+        'secondary-fixed': 'var(--secondary-fixed)',
+        'secondary-container': 'var(--secondary-container)',
+        'on-secondary': 'var(--on-secondary)',
+        'on-secondary-container': 'var(--on-secondary-container)',
         
-        // Tertiary - The Warm Accent
-        tertiary: '#ffb695',
-        'tertiary-fixed': '#ffdbcc',
-        'tertiary-container': '#cc7a5c',
-        'on-tertiary': '#0c1324',
-        'on-tertiary-container': '#ffffff',
+        // Tertiary - AI Insights
+        tertiary: 'var(--tertiary)',
+        'tertiary-fixed': 'var(--tertiary-fixed)',
+        'tertiary-container': 'var(--tertiary-container)',
+        'on-tertiary': 'var(--on-tertiary)',
+        'on-tertiary-container': 'var(--on-tertiary-container)',
         
         // Text Colors
-        'on-surface': '#dce1fb',
-        'on-surface-variant': '#a8b5ff',
-        'on-surface-dim': '#8f9cd9',
+        'on-surface': 'var(--on-surface)',
+        'on-surface-variant': 'var(--on-surface-variant)',
+        'on-surface-dim': 'var(--on-surface-dim)',
         
         // Outline
-        outline: '#6b78a8',
-        'outline-variant': '#4a5578',
+        outline: 'var(--outline)',
+        'outline-variant': 'var(--outline-variant)',
         
         // Semantic Colors
-        error: '#ffb4ab',
-        'error-container': '#93000a',
-        success: '#80de98',
-        warning: '#ffcc80',
+        error: 'var(--error)',
+        'error-container': 'var(--error-container)',
+        success: 'var(--success)',
+        warning: 'var(--warning)',
+        'warning-container': 'var(--warning-container)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        display: ['Manrope', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        'display-lg': ['3.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
-        'display-md': ['2.5rem', { lineHeight: '1.2', letterSpacing: '-0.01em' }],
-        'display-sm': ['2rem', { lineHeight: '1.3', letterSpacing: '0em' }],
-        'headline-lg': ['1.5rem', { lineHeight: '1.4', letterSpacing: '0em' }],
-        'headline-md': ['1.25rem', { lineHeight: '1.5', letterSpacing: '0.01em' }],
-        'headline-sm': ['1.125rem', { lineHeight: '1.5', letterSpacing: '0.01em' }],
-        'body-lg': ['1.125rem', { lineHeight: '1.6', letterSpacing: '0em' }],
-        'body-md': ['1rem', { lineHeight: '1.6', letterSpacing: '0.01em' }],
-        'body-sm': ['0.875rem', { lineHeight: '1.5', letterSpacing: '0.01em' }],
-        'label-lg': ['0.875rem', { lineHeight: '1.4', letterSpacing: '0.02em' }],
-        'label-md': ['0.75rem', { lineHeight: '1.3', letterSpacing: '0.03em' }],
-        'label-sm': ['0.625rem', { lineHeight: '1.2', letterSpacing: '0.04em' }],
+        'display-lg': ['3.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'display-md': ['2.5rem', { lineHeight: '1.2', letterSpacing: '-0.01em', fontWeight: '600' }],
+        'display-sm': ['2rem', { lineHeight: '1.3', letterSpacing: '0em', fontWeight: '600' }],
+        'headline-lg': ['1.5rem', { lineHeight: '1.4', letterSpacing: '0em', fontWeight: '600' }],
+        'headline-md': ['1.25rem', { lineHeight: '1.5', letterSpacing: '0.01em', fontWeight: '600' }],
+        'headline-sm': ['1.125rem', { lineHeight: '1.5', letterSpacing: '0.01em', fontWeight: '600' }],
+        'title-lg': ['1.375rem', { lineHeight: '1.4', letterSpacing: '0em', fontWeight: '600' }],
+        'title-md': ['1.125rem', { lineHeight: '1.5', letterSpacing: '0.01em', fontWeight: '600' }],
+        'title-sm': ['1rem', { lineHeight: '1.5', letterSpacing: '0.02em', fontWeight: '600' }],
+        'body-lg': ['1.125rem', { lineHeight: '1.6', letterSpacing: '0em', fontWeight: '400' }],
+        'body-md': ['1rem', { lineHeight: '1.6', letterSpacing: '0.01em', fontWeight: '400' }],
+        'body-sm': ['0.875rem', { lineHeight: '1.5', letterSpacing: '0.01em', fontWeight: '400' }],
+        'label-lg': ['0.875rem', { lineHeight: '1.4', letterSpacing: '0.02em', fontWeight: '500' }],
+        'label-md': ['0.75rem', { lineHeight: '1.3', letterSpacing: '0.03em', fontWeight: '500' }],
+        'label-sm': ['0.625rem', { lineHeight: '1.2', letterSpacing: '0.04em', fontWeight: '500' }],
       },
       borderRadius: {
-        'md': '0.375rem',
-        'lg': '0.5rem',
-        'xl': '0.75rem',
+        'md': '0.5rem',
+        'lg': '0.75rem',
+        'xl': '1rem',
       },
       backdropBlur: {
-        'glass': '12px',
+        'glass': '20px',
       },
       boxShadow: {
-        'ambient': '0 4px 24px -1px rgba(192, 193, 255, 0.04)',
-        'ambient-lg': '0 8px 40px -2px rgba(192, 193, 255, 0.06)',
+        // Light mode ambient shadow (subtle, natural light)
+        'ambient': '0 4px 24px -1px rgba(25, 28, 30, 0.04)',
+        'ambient-lg': '0 8px 40px -2px rgba(25, 28, 30, 0.06)',
+        // Dark mode will be overridden by CSS
       },
     },
   },

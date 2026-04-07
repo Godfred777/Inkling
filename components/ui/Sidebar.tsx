@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/Avatar';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -29,9 +30,9 @@ export function Sidebar() {
   const { user } = useAuth();
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-surface-container-low border-r border-outline-variant/15">
+    <aside className="fixed left-0 top-0 h-full w-64 bg-secondary-fixed/30 border-r border-outline-variant/10">
       {/* User Profile Section */}
-      <div className="p-6 border-b border-outline-variant/15">
+      <div className="p-6 border-b border-outline-variant/10">
         <div className="flex items-center gap-3 mb-4">
           <Avatar user={user ?? undefined} size="md" />
           <div className="flex-1 min-w-0">
@@ -42,6 +43,9 @@ export function Sidebar() {
               {user?.email || 'Not signed in'}
             </p>
           </div>
+        </div>
+        <div className="flex items-center gap-2 mb-4">
+          <ThemeToggle />
         </div>
         <Link
           href="/settings"

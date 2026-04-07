@@ -3,22 +3,113 @@
 @tailwind utilities;
 
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
+/* Light Theme (Default) - The Cognitive Canvas */
 :root {
-  --foreground-rgb: 220, 225, 251;
-  --background-start-rgb: 12, 19, 36;
-  --background-end-rgb: 12, 19, 36;
+  /* Base Surfaces - Light Mode */
+  --surface: #f7f9fb;
+  --surface-container: #eef0f2;
+  --surface-container-low: #f2f4f6;
+  --surface-container-lowest: #ffffff;
+  --surface-container-high: #e0e3e5;
+  --surface-container-highest: #d9dce0;
+  --surface-bright: #ffffff;
+  --surface-dim: #d4d7db;
+  --surface-variant: #e4e7eb;
+  
+  /* Primary - Indigo Intelligence */
+  --primary: #392cc1;
+  --primary-fixed: #e3dfff;
+  --primary-container: #534ad9;
+  --on-primary: #ffffff;
+  --on-primary-container: #ffffff;
+  
+  /* Secondary */
+  --secondary: #5b6cd9;
+  --secondary-fixed: #dae2fd;
+  --secondary-container: #a8b5ff;
+  --on-secondary: #ffffff;
+  --on-secondary-container: #131b2e;
+  
+  /* Tertiary - AI Insights (Warm Accent) */
+  --tertiary: #006d7e;
+  --tertiary-fixed: #acedff;
+  --tertiary-container: #80d8f0;
+  --on-tertiary: #ffffff;
+  --on-tertiary-container: #001f26;
+  
+  /* Text Colors */
+  --on-surface: #191c1e;
+  --on-surface-variant: #464555;
+  --on-surface-dim: #6b6a75;
+  
+  /* Outline */
+  --outline: #777587;
+  --outline-variant: #c7c4d8;
+  
+  /* Semantic Colors */
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --success: #2e7d32;
+  --success-container: #a8f5b7;
+  --warning: #ed6c02;
+  --warning-container: #ffe0b2;
+}
+
+/* Dark Theme - Obsidian Intelligence */
+.dark {
+  /* Base Surfaces - Dark Mode */
+  --surface: #0c1324;
+  --surface-container: #191f31;
+  --surface-container-low: #151b2d;
+  --surface-container-lowest: #12182a;
+  --surface-container-high: #23293c;
+  --surface-container-highest: #2a3145;
+  --surface-bright: #323a52;
+  --surface-dim: #0a0f1c;
+  --surface-variant: #1f2538;
+  
+  /* Primary - Indigo Pulse */
+  --primary: #c0c1ff;
+  --primary-fixed: #dce1fb;
+  --primary-container: #4b4dd8;
+  --on-primary: #0c1324;
+  --on-primary-container: #ffffff;
+  
+  /* Secondary */
+  --secondary: #a8b5ff;
+  --secondary-fixed: #dce1fb;
+  --secondary-container: #3a3db8;
+  --on-secondary: #0c1324;
+  --on-secondary-container: #ffffff;
+  
+  /* Tertiary - Warm Accent */
+  --tertiary: #ffb695;
+  --tertiary-fixed: #ffdbcc;
+  --tertiary-container: #cc7a5c;
+  --on-tertiary: #0c1324;
+  --on-tertiary-container: #ffffff;
+  
+  /* Text Colors */
+  --on-surface: #dce1fb;
+  --on-surface-variant: #a8b5ff;
+  --on-surface-dim: #8f9cd9;
+  
+  /* Outline */
+  --outline: #6b78a8;
+  --outline-variant: #4a5578;
+  
+  /* Semantic Colors */
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --success: #80de98;
+  --warning: #ffcc80;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: var(--on-surface);
+  background: var(--surface);
 }
 
 /* The No-Line Rule: Avoid borders, use tonal layering instead */
@@ -26,43 +117,57 @@ body {
   border-color: transparent;
 }
 
-/* Custom Scrollbar for Dark Mode */
+/* Custom Scrollbar - Light Mode */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0c1324;
+  background: var(--surface-container-low);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a3145;
+  background: var(--surface-container-high);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #323a52;
+  background: var(--surface-container-highest);
 }
 
 /* Typography Utilities */
 .font-display {
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: 'Manrope', system-ui, sans-serif;
 }
 
 .font-body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Glassmorphism Utility */
+/* Glassmorphism Utility - Light Mode */
 .glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.dark .glass {
   background: rgba(39, 45, 68, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* Cognitive Hub Gradient */
+/* Cognitive Hub Gradient - Light Mode */
 .cognitive-hub {
+  background: linear-gradient(
+    135deg,
+    rgba(57, 44, 193, 0.03) 0%,
+    rgba(0, 109, 126, 0.03) 100%
+  );
+}
+
+.dark .cognitive-hub {
   background: linear-gradient(
     135deg,
     rgba(192, 193, 255, 0.02) 0%,
@@ -76,10 +181,16 @@ body {
 }
 
 .btn-secondary-hover:hover {
-  background-color: #2a3145;
+  background-color: var(--surface-container-highest);
 }
 
 /* Input Focus Glow */
 .input-focus-glow:focus {
-  box-shadow: 0 0 0 1px rgba(192, 193, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(57, 44, 193, 0.2);
+}
+
+/* AI Intelligence Spark - Left accent glow for AI content */
+.ai-spark {
+  border-left: 4px solid var(--tertiary-fixed);
+  background: var(--surface-container-lowest);
 }

@@ -12,11 +12,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          'inline-flex items-center justify-center font-medium rounded-md transition-all duration-200',
+          'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200',
           'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface',
           {
-            // Primary Button
-            'bg-primary-container text-on-primary-container hover:bg-primary hover:shadow-ambient':
+            // Primary Button (AI Action) - with subtle gradient
+            'bg-primary-container text-on-primary-container hover:bg-primary hover:shadow-ambient bg-gradient-to-br from-primary-container to-primary':
               variant === 'primary',
             // Secondary Button
             'text-primary bg-transparent hover:bg-surface-container-highest btn-secondary-hover':

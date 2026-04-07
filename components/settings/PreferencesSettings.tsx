@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { UserPreferences } from '@/types';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Bell, Globe, Clock, Loader2, Check } from 'lucide-react';
+import { Bell, Globe, Clock, Loader2, Check, Sun, Moon } from 'lucide-react';
 
 interface PreferencesSettingsProps {
   onSave: (data: Partial<UserPreferences>) => Promise<void>;
@@ -16,7 +16,7 @@ export function PreferencesSettings({ onSave }: PreferencesSettingsProps) {
   const [hasChanges, setHasChanges] = useState(false);
   const [success, setSuccess] = useState('');
   const [preferences, setPreferences] = useState<UserPreferences>({
-    theme: 'dark',
+    theme: 'light',
     notifications: {
       email: true,
       push: true,
@@ -26,6 +26,15 @@ export function PreferencesSettings({ onSave }: PreferencesSettingsProps) {
     language: 'en',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
+
+  useEffect(() => {
+    // Sync with current theme from DOM
+    const isDark = document.documentElement.classList.contains('dark');
+    setPreferences(prev => ({
+      ...prev,
+      theme: isDark ? 'dark' : 'light',
+    }));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +75,29 @@ export function PreferencesSettings({ onSave }: PreferencesSettingsProps) {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => { setPreferences({ ...preferences, theme: 'dark' }); setHasChanges(true); }}
+                onClick={() => {
+                  setPreferences({ ...preferences, theme: 'light' });
+                  setHasChanges(true);
+                  document.documentElement.classList.remove('dark');
+                }}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  preferences.theme === 'light'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-on-surface-variant/20 bg-surface-container hover:border-on-surface-variant/40'
+                }`}
+              >
+                <div className="text-center">
+                  <Sun className="w-8 h-8 mx-auto mb-2 text-warning" />
+                  <span className="text-sm font-medium">Light</span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPreferences({ ...preferences, theme: 'dark' });
+                  setHasChanges(true);
+                  document.documentElement.classList.add('dark');
+                }}
                 className={`p-4 rounded-lg border-2 transition-all ${
                   preferences.theme === 'dark'
                     ? 'border-primary bg-primary/10'
@@ -74,21 +105,14 @@ export function PreferencesSettings({ onSave }: PreferencesSettingsProps) {
                 }`}
               >
                 <div className="text-center">
-                  <div className="w-8 h-8 bg-surface rounded mx-auto mb-2"></div>
+                  <Moon className="w-8 h-8 mx-auto mb-2 text-primary" />
                   <span className="text-sm font-medium">Dark</span>
                 </div>
               </button>
-              <button
-                type="button"
-                disabled
-                className="p-4 rounded-lg border-2 border-on-surface-variant/20 bg-surface-container opacity-50 cursor-not-allowed"
-              >
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-on-surface rounded mx-auto mb-2"></div>
-                  <span className="text-sm font-medium">Light (Coming Soon)</span>
-                </div>
-              </button>
             </div>
+            <p className="text-xs text-on-surface-variant mt-2">
+              Choose your preferred theme. This setting syncs across your devices.
+            </p>
           </div>
         </div>
       </Card>

@@ -13,8 +13,8 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         className={cn(
           'rounded-lg p-6 transition-all duration-200',
           variant === 'default'
-            ? 'bg-surface-container hover:bg-surface-container-high'
-            : 'bg-surface-variant cognitive-hub backdrop-blur-glass border border-outline-variant/15',
+            ? 'bg-surface-container-lowest hover:bg-surface-container shadow-ambient'
+            : 'bg-surface-container cognitive-hub backdrop-blur-glass border border-outline-variant/10',
           className
         )}
         {...props}
