@@ -164,12 +164,12 @@ export default function ArchitectPage() {
           {/* Blueprint Panel */}
           <div
             className={cn(
-              'border-l border-outline-variant/15 bg-surface-container-low transition-all duration-300',
-              blueprintOpen ? 'w-96' : 'w-0'
+              'flex flex-col border-l border-outline-variant/15 bg-surface-container-low transition-all duration-300 ease-in-out overflow-hidden',
+              blueprintOpen ? 'w-96' : 'w-0 border-l-0'
             )}
           >
-            <div className={cn('h-full flex flex-col', !blueprintOpen && 'hidden')}>
-              <div className="p-4 border-b border-outline-variant/15 flex items-center justify-between">
+            <div className="flex flex-col min-w-96 w-96 h-full">
+              <div className="flex-shrink-0 p-4 border-b border-outline-variant/15 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-tertiary" />
                   <h3 className="font-display font-semibold text-on-surface">
@@ -229,7 +229,7 @@ export default function ArchitectPage() {
               </div>
 
               {/* Commit Action */}
-              <div className="p-4 border-t border-outline-variant/15">
+              <div className="flex-shrink-0 p-4 border-t border-outline-variant/15">
                 <Button variant="primary" size="lg" className="w-full">
                   <Sparkles className="w-4 h-4 mr-2" />
                   Generate Project Structure
@@ -240,16 +240,12 @@ export default function ArchitectPage() {
 
           {/* Toggle Button */}
           {!blueprintOpen && (
-            <div className="absolute right-0 top-20">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setBlueprintOpen(true)}
-                className="rounded-l-md"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-            </div>
+            <button
+              onClick={() => setBlueprintOpen(true)}
+              className="flex-shrink-0 p-2 bg-surface-container-low border-l border-outline-variant/15 text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
           )}
         </main>
       </div>
