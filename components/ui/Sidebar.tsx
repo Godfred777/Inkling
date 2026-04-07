@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Sparkles,
   Settings,
+  FolderPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/Avatar';
@@ -18,6 +19,7 @@ import { Avatar } from '@/components/ui/Avatar';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'My Tasks', href: '/tasks', icon: CheckSquare },
+  { name: 'Projects', href: '/projects', icon: FolderPlus },
   { name: 'Resource Hub', href: '/resources', icon: FolderOpen },
   { name: 'AI Architect', href: '/architect', icon: MessageSquare, primary: true },
 ];
@@ -80,10 +82,12 @@ export function Sidebar() {
 
       {/* New Project Button */}
       <div className="absolute bottom-6 left-4 right-4">
-        <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-surface-bright hover:bg-surface-container-highest text-on-surface rounded-md transition-all duration-200 font-medium">
-          <Plus className="w-5 h-5" />
-          <span>New Project</span>
-        </button>
+        <Link href="/projects/new">
+          <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-surface-bright hover:bg-surface-container-highest text-on-surface rounded-md transition-all duration-200 font-medium">
+            <Plus className="w-5 h-5" />
+            <span>New Project</span>
+          </button>
+        </Link>
       </div>
     </aside>
   );

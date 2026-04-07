@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Header } from '@/components/ui/Header';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -5,7 +6,7 @@ import { Avatar, AvatarGroup } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
 import { projects, tasks, users } from '@/lib/dummyData';
-import { TrendingUp, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { TrendingUp, Clock, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function Dashboard() {
   const stats = [
@@ -59,18 +60,23 @@ export default function Dashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {projects.map((project) => (
-                    <div key={project.id} className="flex items-center justify-between p-3 rounded-lg bg-surface-container-lowest hover:bg-surface-container transition-all">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary font-display font-semibold">
-                          {project.name.charAt(0)}
+                    <Link key={project.id} href={`/projects/${project.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-surface-container-lowest hover:bg-surface-container transition-all cursor-pointer group">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary font-display font-semibold group-hover:bg-primary-container transition-all">
+                            {project.name.charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-on-surface group-hover:text-primary transition-colors">{project.name}</h4>
+                            <p className="text-sm text-on-surface-variant">{project.taskCount} tasks</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-medium text-on-surface">{project.name}</h4>
-                          <p className="text-sm text-on-surface-variant">{project.taskCount} tasks</p>
+                        <div className="flex items-center gap-2">
+                          <AvatarGroup users={project.members} size="sm" />
+                          <ArrowRight className="w-4 h-4 text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </div>
-                      <AvatarGroup users={project.members} size="sm" />
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </CardContent>
