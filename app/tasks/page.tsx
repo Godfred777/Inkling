@@ -67,6 +67,10 @@ export default function TasksPage() {
                 >
                   <LayoutGrid className="w-4 h-4" />
                 </Button>
+                <Button variant="primary" size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                New Task
+              </Button>
               </div>
             </div>
 
