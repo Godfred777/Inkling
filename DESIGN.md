@@ -96,16 +96,15 @@ A specialized container for AI-orchestrated data. It uses `surface-variant` with
 
 ## 6\. Do’s and Don’ts
 
-### Do:
+### Do's
 
 * **Use Asymmetry:** Place a `display-md` headline off-center to create visual tension and interest.
 * **Layer with Intent:** Ensure that every "layer" move is purposeful. If a container is higher, it must be more important.
 * **Focus on Legibility:** Ensure `on-surface` text remains at least 4.5:1 contrast ratio against all surface tiers.
 
-### Don't:
+### Don'ts
 
 * **Don't use pure black (#000000):** It creates "smearing" on OLED screens and feels "cheap." Stick to the obsidian/slate-950 palette.
 * **Don't use 100% white text:** Use `on-surface` (#dce1fb) to reduce eye fatigue.
 * **Don't use "Drop Shadows":** Use tonal shifts or indigo-tinted ambient glows only.
 * **Don't use dividers:** If you feel the need for a line, increase your padding or shift your background color instead.
-
