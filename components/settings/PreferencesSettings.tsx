@@ -111,7 +111,7 @@ export function PreferencesSettings({ onSave }: PreferencesSettingsProps) {
               </button>
             </div>
             <p className="text-xs text-on-surface-variant mt-2">
-              Choose your preferred theme. This setting syncs across your devices.
+              Choose your preferred theme.
             </p>
           </div>
         </div>
