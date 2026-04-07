@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
+import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
 import { tasks } from '@/lib/dummyData';
+import { Task } from '@/types';
 import { List, LayoutGrid, Filter, Plus, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +18,7 @@ type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 
 export default function TasksPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const statusColors = {
     'todo': 'bg-surface-container-high',
@@ -84,7 +87,7 @@ export default function TasksPage() {
                     <div className="space-y-3">
                       {statusTasks.map((task) => (
                         <Card key={task.id} variant="default" className="cursor-pointer hover:shadow-ambient">
-                          <CardContent>
+                          <CardContent onClick={() => setSelectedTask(task)}>
                             <div className="space-y-3">
                               <div className="flex items-start justify-between">
                                 <h4 className="font-medium text-on-surface">{task.title}</h4>
@@ -117,6 +120,7 @@ export default function TasksPage() {
             </div>
           </main>
         </div>
+        {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />}
       </div>
     );
   }
@@ -176,6 +180,7 @@ export default function TasksPage() {
                 {tasks.map((task) => (
                   <div 
                     key={task.id} 
+                    onClick={() => setSelectedTask(task)}
                     className="flex items-center gap-4 p-4 hover:bg-surface-container transition-all cursor-pointer group"
                   >
                     <input
@@ -214,6 +219,7 @@ export default function TasksPage() {
           </Card>
         </main>
       </div>
+      {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />}
     </div>
   );
 }
