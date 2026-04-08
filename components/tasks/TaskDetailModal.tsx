@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { Task, AIInsight } from '@/types';
+import { useGroups } from '@/contexts/GroupContext';
 import { cn } from '@/lib/utils';
 
 interface TaskDetailModalProps {
@@ -15,6 +16,7 @@ interface TaskDetailModalProps {
 }
 
 export function TaskDetailModal({ task, onClose }: TaskDetailModalProps) {
+  const { respondToTask } = useGroups();
   const [isHelpLoading, setIsHelpLoading] = useState(false);
   const [aiHelpContent, setAiHelpContent] = useState<string | null>(null);
 
@@ -186,12 +188,36 @@ export function TaskDetailModal({ task, onClose }: TaskDetailModalProps) {
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="secondary" size="md">
-              Mark as Review
-            </Button>
-            <Button variant="primary" size="md">
-              Mark as Done
-            </Button>
+            {task.assignee && task.assigneeResponse === 'pending' && (
+              <>
+                <Button variant="secondary" size="md" onClick={async () => { await respondToTask(task.id, 'declined'); onClose(); }}>
+                  Decline
+                </Button>
+                <Button variant="primary" size="md" onClick={async () => { await respondToTask(task.id, 'accepted'); onClose(); }}>
+                  Accept
+                </Button>
+              </>
+            )}
+            {task.assigneeResponse === 'accepted' && (
+              <>
+                <Button variant="secondary" size="md">
+                  Mark as Review
+                </Button>
+                <Button variant="primary" size="md">
+                  Mark as Done
+                </Button>
+              </>
+            )}
+            {!task.assignee && (
+              <>
+                <Button variant="secondary" size="md">
+                  Mark as Review
+                </Button>
+                <Button variant="primary" size="md">
+                  Mark as Done
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

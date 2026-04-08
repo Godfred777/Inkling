@@ -50,7 +50,7 @@ export function ThemeToggle() {
           )}
         />
         <span className="text-label-md">
-          {isDark ? 'Light' : 'Dark'}
+          {isDark ? 'Dark' : 'Light'}
         </span>
       </div>
     </Button>

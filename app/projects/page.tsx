@@ -7,23 +7,25 @@ import { Badge } from '@/components/ui/Badge';
 import { AvatarGroup } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
-import { projects } from '@/lib/dummyData';
+import { useGroups } from '@/contexts/GroupContext';
 import { Plus, Search, Filter, ArrowRight, Calendar, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export default function ProjectsPage() {
+  const { projects, groups } = useGroups();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'completed'>('all');
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // For now, treat all projects as active (you can add status field later)
+    const matchesGroup = selectedGroupId === 'all' || project.groupId === selectedGroupId;
     const matchesFilter = filterStatus === 'all' || filterStatus === 'active';
     
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesFilter && matchesGroup;
   });
 
   return (
@@ -49,6 +51,16 @@ export default function ProjectsPage() {
                   className="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant/20 rounded-md text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
+              <select
+                value={selectedGroupId}
+                onChange={(e) => setSelectedGroupId(e.target.value)}
+                className="px-3 py-2 bg-surface border rounded-md text-on-surface"
+              >
+                <option value="all">All Groups</option>
+                {groups.map(g => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
+              </select>
               <Button variant="ghost" size="sm">
                 <Filter className="w-4 h-4 mr-2" />
                 Filter

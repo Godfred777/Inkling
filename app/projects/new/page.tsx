@@ -8,14 +8,17 @@ import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
 import { Avatar } from '@/components/ui/Avatar';
 import { users } from '@/lib/dummyData';
+import { useGroups } from '@/contexts/GroupContext';
 import { ArrowLeft, Users, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function CreateProjectPage() {
   const router = useRouter();
+  const { createProject, groups } = useGroups();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleMember = (userId: string) => {
@@ -30,15 +33,21 @@ export default function CreateProjectPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // TODO: Implement actual project creation API call
-    console.log('Creating project:', { name, description, selectedMembers });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Navigate to the projects page after creation
-    router.push('/projects/');
-    setIsSubmitting(false);
+    try {
+      const selectedMembersObjects = users.filter(u => selectedMembers.includes(u.id));
+      await createProject({ 
+        name, 
+        description, 
+        members: selectedMembersObjects,
+        groupId: selectedGroupId || undefined
+      });
+      
+      router.push('/projects/');
+    } catch (error) {
+      console.error('Project creation failed:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const availableMembers = users.filter(u => !selectedMembers.includes(u.id));
@@ -72,6 +81,23 @@ export default function CreateProjectPage() {
                   <CardDescription>Provide the basic details for your new project</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  <div>
+                    <label htmlFor="group" className="block text-body-md font-medium text-on-surface mb-2">
+                      Group (Optional)
+                    </label>
+                    <select
+                      id="group"
+                      value={selectedGroupId}
+                      onChange={(e) => setSelectedGroupId(e.target.value)}
+                      className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant/20 rounded-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    >
+                      <option value="">No Group</option>
+                      {groups.map(g => (
+                        <option key={g.id} value={g.id}>{g.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div>
                     <label htmlFor="name" className="block text-body-md font-medium text-on-surface mb-2">
                       Project Name *

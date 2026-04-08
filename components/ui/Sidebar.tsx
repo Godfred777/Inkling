@@ -20,6 +20,7 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'My Tasks', href: '/tasks', icon: CheckSquare },
+  { name: 'Groups', href: '/groups', icon: FolderOpen },
   { name: 'Projects', href: '/projects', icon: FolderPlus },
   { name: 'Resource Hub', href: '/resources', icon: FolderOpen },
   { name: 'AI Architect', href: '/architect', icon: MessageSquare, primary: true },

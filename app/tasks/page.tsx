@@ -8,7 +8,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
 import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
-import { tasks } from '@/lib/dummyData';
+import { useGroups } from '@/contexts/GroupContext';
 import { Task } from '@/types';
 import { List, LayoutGrid, Filter, Plus, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,8 +17,10 @@ type ViewMode = 'list' | 'board';
 type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 
 export default function TasksPage() {
+  const { tasks, groups, respondToTask } = useGroups();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
 
   const statusColors = {
     'todo': 'bg-surface-container-high',
@@ -47,6 +49,16 @@ export default function TasksPage() {
           <main className="p-8">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
+                <select
+                  value={selectedGroupId}
+                  onChange={(e) => setSelectedGroupId(e.target.value)}
+                  className="px-3 py-2 bg-surface border rounded-md text-on-surface"
+                >
+                  <option value="all">All Groups</option>
+                  {groups.map(g => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
                 <Button variant="ghost" size="sm">
                   <Filter className="w-4 h-4 mr-2" />
                   Filter
@@ -77,7 +89,7 @@ export default function TasksPage() {
             {/* Kanban Board */}
             <div className="grid grid-cols-4 gap-6">
               {(Object.keys(statusLabels) as TaskStatus[]).map((status) => {
-                const statusTasks = tasks.filter(t => t.status === status);
+                const statusTasks = tasks.filter(t => t.status === status && (selectedGroupId === 'all' || t.groupId === selectedGroupId));
                 return (
                   <div key={status} className="space-y-3">
                     <div className={cn('px-4 py-2 rounded-lg', statusColors[status])}>

@@ -1,35 +1,70 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Group, GroupContextType, GroupMember, GroupRole } from '@/types';
-import { groups as initialGroups } from '@/lib/dummyData';
+import { Group, GroupContextType, GroupMember, GroupRole, Project, Task } from '@/types';
+import { groups as initialGroups, projects as initialProjects, tasks as initialTasks } from '@/lib/dummyData';
 
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
 
 const GROUPS_STORAGE_KEY = 'inkling_groups_v1';
+const PROJECTS_STORAGE_KEY = 'inkling_projects_v1';
+const TASKS_STORAGE_KEY = 'inkling_tasks_v1';
 const MOCK_DELAY = 400;
 
 export function GroupProvider({ children }: { children: React.ReactNode }) {
   const [groups, setGroups] = useState<Group[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem(GROUPS_STORAGE_KEY);
     if (stored) {
       try {
         setGroups(JSON.parse(stored));
-        return;
       } catch (e) {
         console.error('Failed to parse stored groups', e);
+        setGroups(initialGroups);
       }
+    } else {
+      setGroups(initialGroups);
     }
 
-    // seed from dummy data
-    setGroups(initialGroups);
+    const storedProjects = localStorage.getItem(PROJECTS_STORAGE_KEY);
+    if (storedProjects) {
+      try {
+        setProjects(JSON.parse(storedProjects));
+      } catch (e) {
+        console.error('Failed to parse stored projects', e);
+        setProjects(initialProjects);
+      }
+    } else {
+      setProjects(initialProjects);
+    }
+
+    const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+    if (storedTasks) {
+      try {
+        setTasks(JSON.parse(storedTasks));
+      } catch (e) {
+        console.error('Failed to parse stored tasks', e);
+        setTasks(initialTasks);
+      }
+    } else {
+      setTasks(initialTasks);
+    }
   }, []);
 
   useEffect(() => {
     localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups));
   }, [groups]);
+
+  useEffect(() => {
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+  }, [projects]);
+
+  useEffect(() => {
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+  }, [tasks]);
 
   const createGroup = useCallback(async (g: Partial<Group>) => {
     await new Promise(r => setTimeout(r, MOCK_DELAY));
@@ -97,8 +132,90 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     // leaving is contextual — left as a stub for UI
   }, []);
 
+  const createProject = useCallback(async (p: Partial<Project>) => {
+    await new Promise(r => setTimeout(r, MOCK_DELAY));
+    const newProject: Project = {
+      id: 'p_' + Date.now(),
+      name: p.name || 'New Project',
+      description: p.description || '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      members: p.members || [],
+      taskCount: 0,
+      groupId: p.groupId,
+    };
+    setProjects(prev => [newProject, ...prev]);
+    if (p.groupId) {
+      setGroups(prev => prev.map(g => g.id === p.groupId ? { ...g, projectIds: [...g.projectIds, newProject.id], updatedAt: new Date().toISOString() } : g));
+    }
+    return newProject;
+  }, []);
+
+  const updateProject = useCallback(async (id: string, data: Partial<Project>) => {
+    await new Promise(r => setTimeout(r, MOCK_DELAY));
+    let updated: Project | undefined;
+    setProjects(prev => prev.map(p => {
+      if (p.id !== id) return p;
+      updated = { ...p, ...data, updatedAt: new Date().toISOString() };
+      return updated!;
+    }));
+    return updated as Project;
+  }, []);
+
+  const deleteProject = useCallback(async (id: string) => {
+    await new Promise(r => setTimeout(r, MOCK_DELAY));
+    setProjects(prev => prev.filter(p => p.id !== id));
+    setGroups(prev => prev.map(g => ({ ...g, projectIds: g.projectIds.filter(pid => pid !== id), updatedAt: new Date().toISOString() })));
+  }, []);
+
+  const createTask = useCallback(async (t: Partial<Task>) => {
+    await new Promise(r => setTimeout(r, MOCK_DELAY));
+    const newTask: Task = {
+      id: 't_' + Date.now(),
+      title: t.title || 'New Task',
+      description: t.description || '',
+      status: t.status || 'todo',
+      priority: t.priority || 'medium',
+      dueDate: t.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      projectId: t.projectId || '',
+      groupId: t.groupId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      assigneeResponse: t.assignee ? 'pending' : undefined,
+    };
+    setTasks(prev => [newTask, ...prev]);
+    if (t.projectId) {
+      setProjects(prev => prev.map(p => p.id === t.projectId ? { ...p, taskCount: p.taskCount + 1, updatedAt: new Date().toISOString() } : p));
+    }
+    return newTask;
+  }, []);
+
+  const updateTask = useCallback(async (id: string, data: Partial<Task>) => {
+    await new Promise(r => setTimeout(r, MOCK_DELAY));
+    let updated: Task | undefined;
+    setTasks(prev => prev.map(t => {
+      if (t.id !== id) return t;
+      updated = { ...t, ...data, updatedAt: new Date().toISOString() };
+      return updated!;
+    }));
+    return updated as Task;
+  }, []);
+
+  const deleteTask = useCallback(async (id: string) => {
+    await new Promise(r => setTimeout(r, MOCK_DELAY));
+    setTasks(prev => prev.filter(t => t.id !== id));
+    setProjects(prev => prev.map(p => p.taskCount > 0 ? { ...p, taskCount: p.taskCount - 1, updatedAt: new Date().toISOString() } : p));
+  }, []);
+
+  const respondToTask = useCallback(async (taskId: string, response: 'accepted' | 'declined') => {
+    await new Promise(r => setTimeout(r, MOCK_DELAY));
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assigneeResponse: response, status: response === 'accepted' ? 'in-progress' : t.status, updatedAt: new Date().toISOString() } : t));
+  }, []);
+
   const value: GroupContextType = {
     groups,
+    projects,
+    tasks,
     createGroup,
     updateGroup,
     deleteGroup,
@@ -107,6 +224,13 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     changeMemberRole,
     joinGroup,
     leaveGroup,
+    createProject,
+    updateProject,
+    deleteProject,
+    createTask,
+    updateTask,
+    deleteTask,
+    respondToTask,
   };
 
   return <GroupContext.Provider value={value}>{children}</GroupContext.Provider>;

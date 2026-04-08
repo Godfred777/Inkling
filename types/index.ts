@@ -16,6 +16,7 @@ export interface Project {
   updatedAt: string;
   members: User[];
   taskCount: number;
+  groupId?: string;
 }
 
 export interface Task {
@@ -27,8 +28,10 @@ export interface Task {
   dueDate: string;
   assignee?: User;
   projectId: string;
+  groupId?: string;
   createdAt: string;
   updatedAt: string;
+  assigneeResponse?: 'pending' | 'accepted' | 'declined';
 }
 
 export interface Resource {
@@ -160,6 +163,8 @@ export interface Group {
 
 export interface GroupContextType {
   groups: Group[];
+  projects: Project[];
+  tasks: Task[];
   createGroup: (g: Partial<Group>) => Promise<Group>;
   updateGroup: (id: string, data: Partial<Group>) => Promise<Group>;
   deleteGroup: (id: string) => Promise<void>;
@@ -168,4 +173,11 @@ export interface GroupContextType {
   changeMemberRole: (groupId: string, memberId: string, role: GroupRole) => Promise<void>;
   joinGroup: (groupId: string) => Promise<void>;
   leaveGroup: (groupId: string) => Promise<void>;
+  createProject: (p: Partial<Project>) => Promise<Project>;
+  updateProject: (id: string, data: Partial<Project>) => Promise<Project>;
+  deleteProject: (id: string) => Promise<void>;
+  createTask: (t: Partial<Task>) => Promise<Task>;
+  updateTask: (id: string, data: Partial<Task>) => Promise<Task>;
+  deleteTask: (id: string) => Promise<void>;
+  respondToTask: (taskId: string, response: 'accepted' | 'declined') => Promise<void>;
 }
