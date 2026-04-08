@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ArrowLeft, Users, Plus, Trash2, Edit2 } from 'lucide-react';
 import Link from 'next/link';
+import { MemberManagement } from '@/components/groups/MemberManagement';
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -125,43 +126,7 @@ export default function GroupDetailPage() {
 
             {/* Sidebar - Members Management */}
             <div className="space-y-6">
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Members ({group.members.length})
-                </h3>
-                <div className="space-y-3">
-                  {group.members.map(m => (
-                    <div key={m.id} className="p-3 rounded-lg bg-surface-container">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-on-surface">{m.user.name}</h4>
-                          <p className="text-xs text-on-surface-variant">{m.user.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <select
-                          value={m.role}
-                          onChange={(e) => changeMemberRole(groupId, m.id, e.target.value as any)}
-                          className="flex-1 text-xs px-2 py-1 rounded bg-surface border border-on-surface-variant/20"
-                        >
-                          <option>Owner</option>
-                          <option>Editor</option>
-                          <option>Assignee</option>
-                          <option>Viewer</option>
-                        </select>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => removeMember(groupId, m.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-error" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
+              <MemberManagement groupId={groupId} />
 
               {/* Group Stats */}
               <Card className="p-6">
