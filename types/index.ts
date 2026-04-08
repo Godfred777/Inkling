@@ -136,3 +136,36 @@ export interface AuthContextType {
   updatePreferences: (data: Partial<UserPreferences>) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
+
+// Group Types
+export type GroupRole = 'Owner' | 'Editor' | 'Assignee' | 'Viewer';
+
+export interface GroupMember {
+  id: string;
+  user: User;
+  role: GroupRole;
+  joinedAt: string;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  owners: User[];
+  members: GroupMember[];
+  projectIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GroupContextType {
+  groups: Group[];
+  createGroup: (g: Partial<Group>) => Promise<Group>;
+  updateGroup: (id: string, data: Partial<Group>) => Promise<Group>;
+  deleteGroup: (id: string) => Promise<void>;
+  addMember: (groupId: string, member: GroupMember) => Promise<void>;
+  removeMember: (groupId: string, memberId: string) => Promise<void>;
+  changeMemberRole: (groupId: string, memberId: string, role: GroupRole) => Promise<void>;
+  joinGroup: (groupId: string) => Promise<void>;
+  leaveGroup: (groupId: string) => Promise<void>;
+}

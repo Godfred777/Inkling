@@ -36,8 +36,8 @@ export default function CreateProjectPage() {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Navigate to the new project page
-    router.push('/projects/1');
+    // Navigate to the projects page after creation
+    router.push('/projects/');
     setIsSubmitting(false);
   };
 

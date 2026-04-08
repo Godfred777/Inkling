@@ -9,9 +9,10 @@ import { Card } from '@/components/ui/Card';
 import { ProfileSettings } from '@/components/settings/ProfileSettings';
 import { AccountSettings } from '@/components/settings/AccountSettings';
 import { PreferencesSettings } from '@/components/settings/PreferencesSettings';
+import { GroupsSettings } from '@/components/settings/GroupsSettings';
 import { User, Shield, Settings, LogOut, Loader2 } from 'lucide-react';
 
-type SettingsTab = 'profile' | 'account' | 'preferences';
+type SettingsTab = 'profile' | 'account' | 'preferences' | 'groups';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function SettingsPage() {
     { id: 'profile', label: 'Profile', icon: <User className="h-5 w-5" /> },
     { id: 'account', label: 'Account', icon: <Shield className="h-5 w-5" /> },
     { id: 'preferences', label: 'Preferences', icon: <Settings className="h-5 w-5" /> },
+    { id: 'groups', label: 'Groups', icon: <User className="h-5 w-5" /> },
   ];
 
   const handleLogout = async () => {
@@ -101,6 +103,9 @@ export default function SettingsPage() {
                     await updatePreferences(data);
                   }}
                 />
+              )}
+              {activeTab === 'groups' && (
+                <GroupsSettings />
               )}
             </div>
           </div>

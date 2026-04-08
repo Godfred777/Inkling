@@ -1,4 +1,4 @@
-import { Project, Task, User, Resource, AIInsight, Notification } from '@/types';
+import { Project, Task, User, Resource, AIInsight, Notification, Group, GroupMember } from '@/types';
 
 // Dummy Users
 export const users: User[] = [
@@ -271,5 +271,61 @@ export const notifications: Notification[] = [
     type: 'success',
     read: true,
     createdAt: '2024-03-15T08:00:00',
+  },
+];
+
+// Dummy Groups
+export const groups: Group[] = [
+  {
+    id: 'g1',
+    name: 'Frontend Team',
+    description: 'Handles UI/UX and frontend engineering',
+    owners: [users[0]],
+    members: [
+      {
+        id: 'm1',
+        user: users[0],
+        role: 'Owner',
+        joinedAt: '2024-03-01',
+      },
+      {
+        id: 'm2',
+        user: users[1],
+        role: 'Editor',
+        joinedAt: '2024-03-05',
+      },
+      {
+        id: 'm3',
+        user: users[3],
+        role: 'Viewer',
+        joinedAt: '2024-03-07',
+      },
+    ],
+    projectIds: ['1', '3'],
+    createdAt: '2024-03-01',
+    updatedAt: '2024-04-02',
+  },
+  {
+    id: 'g2',
+    name: 'Marketing Squad',
+    description: 'Marketing and content team',
+    owners: [users[1]],
+    members: [
+      {
+        id: 'm4',
+        user: users[1],
+        role: 'Owner',
+        joinedAt: '2024-03-10',
+      },
+      {
+        id: 'm5',
+        user: users[2],
+        role: 'Editor',
+        joinedAt: '2024-03-12',
+      },
+    ],
+    projectIds: ['2'],
+    createdAt: '2024-03-10',
+    updatedAt: '2024-04-01',
   },
 ];
