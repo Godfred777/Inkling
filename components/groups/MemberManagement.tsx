@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useGroups } from '@/contexts/GroupContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -26,8 +27,29 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
   // Only owners can manage members
   const isOwner = group?.owners.some(owner => owner.id === user?.id);
 
+  const router = useRouter();
+
+  // If the current viewer is not an owner, show a helpful message
   if (!isOwner) {
-    return null;
+    return (
+      <Card className="p-6">
+        <div className="flex flex-col items-start gap-3">
+          <h3 className="text-lg font-semibold">Manage Members</h3>
+          {!user ? (
+            <div className="text-sm text-on-surface-variant">
+              You must be signed in as an owner to manage members.
+              <div className="mt-3">
+                <Button size="sm" onClick={() => router.push('/login')}>Sign in</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-on-surface-variant">
+              Only group owners can add or remove members. If you should have access, ask an owner to update your role.
+            </div>
+          )}
+        </div>
+      </Card>
+    );
   }
 
   const availableUsers = users.filter(

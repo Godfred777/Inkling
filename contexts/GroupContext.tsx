@@ -134,20 +134,36 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
 
   const createProject = useCallback(async (p: Partial<Project>) => {
     await new Promise(r => setTimeout(r, MOCK_DELAY));
+    const id = 'p_' + Date.now();
+
+    // Determine members: prefer explicit members passed in, otherwise inherit group's members
+    let projectMembers = p.members || [];
+
+    if (p.groupId) {
+      setGroups(prev => {
+        const grp = prev.find(g => g.id === p.groupId);
+        if (grp) {
+          if (!projectMembers || projectMembers.length === 0) {
+            projectMembers = grp.members.map(m => m.user);
+          }
+          return prev.map(g => g.id === p.groupId ? { ...g, projectIds: [...g.projectIds, id], updatedAt: new Date().toISOString() } : g);
+        }
+        return prev;
+      });
+    }
+
     const newProject: Project = {
-      id: 'p_' + Date.now(),
+      id,
       name: p.name || 'New Project',
       description: p.description || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      members: p.members || [],
+      members: projectMembers,
       taskCount: 0,
       groupId: p.groupId,
     };
+
     setProjects(prev => [newProject, ...prev]);
-    if (p.groupId) {
-      setGroups(prev => prev.map(g => g.id === p.groupId ? { ...g, projectIds: [...g.projectIds, newProject.id], updatedAt: new Date().toISOString() } : g));
-    }
     return newProject;
   }, []);
 
