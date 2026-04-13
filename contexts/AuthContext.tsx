@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, AuthSession, AuthContextType, RegisterRequest, UserPreferences } from '@/types';
+import { users } from '@/lib/dummyData';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -45,8 +46,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Mock API call - replace with actual API endpoint
       await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
       
-      // Mock authentication - in production, this would be an API call
-      const mockUser: User = {
+      // Find matching user from dummy data by email
+      const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      
+      const mockUser: User = existingUser || {
         id: 'user_' + Date.now(),
         name: email.split('@')[0],
         email: email,
@@ -153,25 +156,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session]);
 
   const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    if (!session) throw new Error('No session found');
+    
     setIsLoading(true);
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
       
-      // In production, validate currentPassword with backend
-      if (currentPassword === 'wrong') {
-        throw new Error('Current password is incorrect');
-      }
+      // In a real implementation, you would verify currentPassword with the backend
+      // and update the password securely
+      console.log('Password changed for user:', session.user.email);
     } catch (error) {
       console.error('Password change failed:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [session]);
 
   const value: AuthContextType = {
-    user: session?.user ?? null,
+    user: session?.user || null,
     session,
     isLoading,
     isAuthenticated: !!session,
@@ -183,7 +187,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     changePassword,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
