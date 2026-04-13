@@ -2,31 +2,63 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, AuthSession, AuthContextType, RegisterRequest, UserPreferences } from '@/types';
+import { 
+  signInWithEmailAndPassword, 
+  signUpWithEmailAndPassword, 
+  signOut,
+  resetPasswordForEmail,
+  updateUserMetadata,
+  updateUserPassword,
+  supabase
+} from '@/api/auth';
 import { users } from '@/lib/dummyData';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_STORAGE_KEY = 'inkling_auth_session';
-const MOCK_DELAY = 800;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize session from localStorage on mount
+  // Initialize session from Supabase on mount
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-        if (stored) {
-          const parsedSession = JSON.parse(stored);
-          const now = new Date();
-          const expiresAt = new Date(parsedSession.expiresAt);
-          
-          if (expiresAt > now) {
-            setSession(parsedSession);
-          } else {
-            localStorage.removeItem(AUTH_STORAGE_KEY);
+        // Check for existing Supabase session
+        const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+        
+        if (supabaseSession) {
+          const user: User = {
+            id: supabaseSession.user.id,
+            name: supabaseSession.user.user_metadata?.name || supabaseSession.user.email?.split('@')[0] || '',
+            email: supabaseSession.user.email || '',
+            role: supabaseSession.user.user_metadata?.role || 'Owner',
+          };
+
+          const authSession: AuthSession = {
+            user,
+            token: supabaseSession.access_token || '',
+            expiresAt: supabaseSession.expires_at 
+              ? new Date(supabaseSession.expires_at * 1000).toISOString()
+              : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          };
+
+          setSession(authSession);
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authSession));
+        } else {
+          // Fallback to localStorage
+          const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+          if (stored) {
+            const parsedSession = JSON.parse(stored);
+            const now = new Date();
+            const expiresAt = new Date(parsedSession.expiresAt);
+            
+            if (expiresAt > now) {
+              setSession(parsedSession);
+            } else {
+              localStorage.removeItem(AUTH_STORAGE_KEY);
+            }
           }
         }
       } catch (error) {
@@ -43,30 +75,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Mock API call - replace with actual API endpoint
-      await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
+      const { data, error } = await signInWithEmailAndPassword(email, password);
       
-      // Find matching user from dummy data by email
-      const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-      
-      const mockUser: User = existingUser || {
-        id: 'user_' + Date.now(),
-        name: email.split('@')[0],
-        email: email,
-        role: 'Owner',
-      };
+      if (error) {
+        throw error;
+      }
 
-      const mockSession: AuthSession = {
-        user: mockUser,
-        token: 'mock_jwt_token_' + Date.now(),
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-      };
+      if (data.user) {
+        const user: User = {
+          id: data.user.id,
+          name: data.user.user_metadata?.name || email.split('@')[0],
+          email: data.user.email || email,
+          role: data.user.user_metadata?.role || 'Owner',
+        };
 
-      setSession(mockSession);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockSession));
+        const authSession: AuthSession = {
+          user,
+          token: data.session?.access_token || '',
+          expiresAt: data.session?.expires_at 
+            ? new Date(data.session.expires_at * 1000).toISOString()
+            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        };
+
+        setSession(authSession);
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authSession));
+      }
     } catch (error) {
       console.error('Login failed:', error);
-      throw new Error('Login failed. Please check your credentials.');
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -75,28 +111,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(async (data: RegisterRequest) => {
     setIsLoading(true);
     try {
-      // Mock API call - replace with actual API endpoint
-      await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-      
       if (data.password !== data.confirmPassword) {
         throw new Error('Passwords do not match');
       }
 
-      const mockUser: User = {
-        id: 'user_' + Date.now(),
-        name: data.name,
-        email: data.email,
-        role: 'Owner',
-      };
+      const { data: authData, error } = await signUpWithEmailAndPassword(data.email, data.password);
+      
+      if (error) {
+        throw error;
+      }
 
-      const mockSession: AuthSession = {
-        user: mockUser,
-        token: 'mock_jwt_token_' + Date.now(),
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      };
+      if (authData.user) {
+        // Update user metadata with name
+        if (data.name) {
+          await updateUserMetadata({ name: data.name });
+        }
 
-      setSession(mockSession);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockSession));
+        const user: User = {
+          id: authData.user.id,
+          name: data.name || authData.user.user_metadata?.name || data.email.split('@')[0],
+          email: authData.user.email || data.email,
+          role: authData.user.user_metadata?.role || 'Owner',
+        };
+
+        const authSession: AuthSession = {
+          user,
+          token: authData.session?.access_token || '',
+          expiresAt: authData.session?.expires_at 
+            ? new Date(authData.session.expires_at * 1000).toISOString()
+            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        };
+
+        setSession(authSession);
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authSession));
+      }
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;
@@ -105,9 +153,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    setSession(null);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+  const logout = useCallback(async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setSession(null);
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
   }, []);
 
   const updateProfile = useCallback(async (data: Partial<User>) => {
@@ -115,14 +169,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     setIsLoading(true);
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-      
-      const updatedUser = { ...session.user, ...data };
-      const updatedSession = { ...session, user: updatedUser };
-      
-      setSession(updatedSession);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedSession));
+      const { data: userData, error } = await updateUserMetadata({
+        name: data.name,
+        role: data.role,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (userData.user) {
+        const updatedUser: User = {
+          ...session.user,
+          name: userData.user.user_metadata?.name || session.user.name,
+          role: userData.user.user_metadata?.role || session.user.role,
+        };
+        const updatedSession = { ...session, user: updatedUser };
+        
+        setSession(updatedSession);
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedSession));
+      }
     } catch (error) {
       console.error('Profile update failed:', error);
       throw error;
@@ -136,14 +202,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     setIsLoading(true);
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-      
-      const updatedUser = {
+      const { data: userData, error } = await updateUserMetadata({
+        preferences: {
+          ...session.user.preferences,
+          ...data,
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const updatedUser: User = {
         ...session.user,
-        ...data
       };
-      const updatedSession: AuthSession = { ...session, user: updatedUser };
+      const updatedSession: AuthSession = { 
+        ...session, 
+        user: updatedUser,
+      };
       
       setSession(updatedSession);
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedSession));
@@ -160,11 +236,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     setIsLoading(true);
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-      
-      // In a real implementation, you would verify currentPassword with the backend
-      // and update the password securely
+      // Note: Supabase doesn't provide a direct way to verify current password
+      // This would typically be handled server-side with a custom function
+      // For now, we'll just update the password
+      const { error } = await updateUserPassword(newPassword);
+
+      if (error) {
+        throw error;
+      }
+
       console.log('Password changed for user:', session.user.email);
     } catch (error) {
       console.error('Password change failed:', error);
@@ -173,6 +253,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   }, [session]);
+
+  const resetPassword = useCallback(async (email: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await resetPasswordForEmail(email);
+      
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Password reset failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const value: AuthContextType = {
     user: session?.user || null,
@@ -185,6 +283,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateProfile,
     updatePreferences,
     changePassword,
+    resetPassword,
   };
 
   return (

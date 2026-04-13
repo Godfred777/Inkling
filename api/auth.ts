@@ -6,6 +6,40 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 export const supabase = createClient(supabaseUrl!, supabaseKey!);
 
 /**
+ * Updates the current user's metadata using Supabase.
+ * @param metadata - The user metadata to update.
+ * @returns A promise resolving to the update response.
+ * @throws Error if the update fails.
+ */
+export async function updateUserMetadata(metadata: Record<string, any>) {
+    try {
+        return await supabase.auth.updateUser({
+            data: metadata
+        });
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+/**
+ * Updates the current user's password using Supabase.
+ * @param password - The new password.
+ * @returns A promise resolving to the update response.
+ * @throws Error if the update fails.
+ */
+export async function updateUserPassword(password: string) {
+    try {
+        return await supabase.auth.updateUser({
+            password
+        });
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+/**
  * Signs up a user with email and password using Supabase authentication.
  *
  * @param email - The user's email address.

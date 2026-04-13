@@ -134,10 +134,11 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   updatePreferences: (data: Partial<UserPreferences>) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<any>;
 }
 
 // Group Types
