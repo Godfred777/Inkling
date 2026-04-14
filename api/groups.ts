@@ -204,6 +204,7 @@ export async function addMemberToGroup(groupId: string, userId: string, ownerId:
             .select('id')
             .eq('group_id', groupId)
             .eq('user_id', ownerId)
+            .eq('role', 'owner')
             .single();
 
         if (!ownership) {
@@ -272,6 +273,7 @@ export async function removeMemberFromGroup(groupId: string, userId: string, own
             .select('id')
             .eq('group_id', groupId)
             .eq('user_id', ownerId)
+            .eq('role', 'owner') 
             .single();
 
         if (!ownership) {
