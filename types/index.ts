@@ -169,11 +169,11 @@ export interface GroupContextType {
   createGroup: (g: Partial<Group>) => Promise<Group>;
   updateGroup: (id: string, data: Partial<Group>) => Promise<Group>;
   deleteGroup: (id: string) => Promise<void>;
-  addMember: (groupId: string, member: GroupMember) => Promise<void>;
-  removeMember: (groupId: string, memberId: string) => Promise<void>;
+  addMember: (groupId: string, member: GroupMember, ownerId: string) => Promise<void>;
+  removeMember: (groupId: string, memberId: string, ownerId: string) => Promise<void>;
   changeMemberRole: (groupId: string, memberId: string, role: GroupRole) => Promise<void>;
-  joinGroup: (groupId: string) => Promise<void>;
-  leaveGroup: (groupId: string) => Promise<void>;
+  joinGroup: (groupId: string, userID: string) => Promise<void>;
+  leaveGroup: (groupId: string, userID: string) => Promise<void>;
   createProject: (p: Partial<Project>) => Promise<Project>;
   updateProject: (id: string, data: Partial<Project>) => Promise<Project>;
   deleteProject: (id: string) => Promise<void>;

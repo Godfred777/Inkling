@@ -1,8 +1,20 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Group, GroupContextType, GroupMember, GroupRole, Project, Task } from '@/types';
-import { groups as initialGroups, projects as initialProjects, tasks as initialTasks } from '@/lib/dummyData';
+import { Group, GroupContextType, GroupMember, GroupRole, Project, Task, User } from '@/types';
+import { 
+  createNewGroup, 
+  getGroupsWithUser, 
+  getGroupById, 
+  joinGroup, 
+  leaveGroup,
+  addMemberToGroup,
+  removeMemberFromGroup,
+  getGroupMembers,
+  updateExistingGroup,
+  deleteGroup 
+} from '@/api/groups';
+import { useAuth } from './AuthContext';
 
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
 
@@ -12,47 +24,60 @@ const TASKS_STORAGE_KEY = 'inkling_tasks_v1';
 const MOCK_DELAY = 400;
 
 export function GroupProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch groups when user authenticates
   useEffect(() => {
-    const stored = localStorage.getItem(GROUPS_STORAGE_KEY);
-    if (stored) {
-      try {
-        setGroups(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse stored groups', e);
-        setGroups(initialGroups);
+    const fetchGroups = async () => {
+      if (!user) {
+        setGroups([]);
+        setProjects([]);
+        setTasks([]);
+        setLoading(false);
+        return;
       }
-    } else {
-      setGroups(initialGroups);
-    }
 
-    const storedProjects = localStorage.getItem(PROJECTS_STORAGE_KEY);
-    if (storedProjects) {
       try {
-        setProjects(JSON.parse(storedProjects));
-      } catch (e) {
-        console.error('Failed to parse stored projects', e);
-        setProjects(initialProjects);
+        setLoading(true);
+        setError(null);
+        
+        const groupsData = await getGroupsWithUser();
+        
+        // Transform Supabase data to app format
+        const transformedGroups: Group[] = groupsData.map((g: any) => ({
+          id: g.id.toString(),
+          name: g.name,
+          description: g.description || '',
+          owners: [], // TODO: Get owners from group_members with role
+          members: g.group_members?.map((m: any) => ({
+            id: m.id?.toString() || `m_${m.user_id}`,
+            user: { id: m.user_id, email: m.users?.email, name: m.users?.name || 'User' } as User,
+            role: m.role || 'Viewer',
+            joinedAt: m.created_at || new Date().toISOString(),
+          })) || [],
+          projectIds: [],
+          createdAt: g.created_at || new Date().toISOString(),
+          updatedAt: g.updated_at || new Date().toISOString(),
+        }));
+        
+        setGroups(transformedGroups);
+      } catch (err) {
+        console.error('Error fetching groups:', err);
+        setError('Failed to load groups. Please try again.');
+        // Fallback to empty state
+        setGroups([]);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      setProjects(initialProjects);
-    }
+    };
 
-    const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
-    if (storedTasks) {
-      try {
-        setTasks(JSON.parse(storedTasks));
-      } catch (e) {
-        console.error('Failed to parse stored tasks', e);
-        setTasks(initialTasks);
-      }
-    } else {
-      setTasks(initialTasks);
-    }
-  }, []);
+    fetchGroups();
+  }, [user]);
 
   useEffect(() => {
     localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups));
@@ -67,51 +92,99 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
   }, [tasks]);
 
   const createGroup = useCallback(async (g: Partial<Group>) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    const newGroup: Group = {
-      id: 'g_' + Date.now(),
-      name: g.name || 'New Group',
-      description: g.description || '',
-      owners: g.owners || [],
-      members: g.members || [],
-      projectIds: g.projectIds || [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setGroups(prev => [newGroup, ...prev]);
-    return newGroup;
+    try {
+      const newGroupData = await createNewGroup(g.name || 'New Group', g.description);
+      
+      const newGroup: Group = {
+        id: newGroupData.id.toString(),
+        name: newGroupData.name,
+        description: newGroupData.description || '',
+        owners: [],
+        members: [],
+        projectIds: [],
+        createdAt: newGroupData.createdAt || new Date().toISOString(),
+        updatedAt: newGroupData.updated_at || new Date().toISOString(),
+      };
+      
+      setGroups(prev => [newGroup, ...prev]);
+      return newGroup;
+    } catch (err) {
+      console.error('Error creating group:', err);
+      throw err;
+    }
   }, []);
 
   const updateGroup = useCallback(async (id: string, data: Partial<Group>) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    let updated: Group | undefined;
-    setGroups(prev => prev.map(g => {
-      if (g.id !== id) return g;
-      updated = { ...g, ...data, updatedAt: new Date().toISOString() };
-      return updated!;
-    }));
-    return updated as Group;
+    try {
+      const updatedData = await updateExistingGroup(id, data.name, data.description);
+      
+      let updated: Group | undefined;
+      setGroups(prev => prev.map(g => {
+        if (g.id !== id) return g;
+        updated = {
+          ...g,
+          name: updatedData.name,
+          description: updatedData.description || '',
+          updatedAt: updatedData.updated_at || new Date().toISOString(),
+        };
+        return updated!;
+      }));
+      return updated as Group;
+    } catch (err) {
+      console.error('Error updating group:', err);
+      throw err;
+    }
   }, []);
 
   const deleteGroup = useCallback(async (id: string) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    setGroups(prev => prev.filter(g => g.id !== id));
+    try {
+      await deleteGroup(id);
+      setGroups(prev => prev.filter(g => g.id !== id));
+    } catch (err) {
+      console.error('Error deleting group:', err);
+      throw err;
+    }
   }, []);
 
-  const addMember = useCallback(async (groupId: string, member: GroupMember) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    setGroups(prev => prev.map(g => {
-      if (g.id !== groupId) return g;
-      return { ...g, members: [...g.members, member], updatedAt: new Date().toISOString() };
-    }));
+  const addMember = useCallback(async (groupId: string, member: GroupMember, adminUserId: string) => {
+    try {
+      await addMemberToGroup(groupId, member.user.id, adminUserId);
+      
+      setGroups(prev => prev.map(g => {
+        if (g.id !== groupId) return g;
+        return { ...g, members: [...g.members, member], updatedAt: new Date().toISOString() };
+      }));
+    } catch (err) {
+      console.error('Error adding member:', err);
+      throw err;
+    }
   }, []);
 
-  const removeMember = useCallback(async (groupId: string, memberId: string) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    setGroups(prev => prev.map(g => {
-      if (g.id !== groupId) return g;
-      return { ...g, members: g.members.filter(m => m.id !== memberId), updatedAt: new Date().toISOString() };
-    }));
+  const removeMember = useCallback(async (groupId: string, memberId: string, adminUserId: string) => {
+    try {
+      // Find the member to get their user ID
+      let memberUserId: string | undefined;
+      setGroups(prev => {
+        const group = prev.find(g => g.id === groupId);
+        const member = group?.members.find(m => m.id === memberId);
+        memberUserId = member?.user.id;
+        return prev;
+      });
+
+      if (!memberUserId) {
+        throw new Error('Member not found');
+      }
+
+      await removeMemberFromGroup(groupId, memberUserId, adminUserId);
+      
+      setGroups(prev => prev.map(g => {
+        if (g.id !== groupId) return g;
+        return { ...g, members: g.members.filter(m => m.id !== memberId), updatedAt: new Date().toISOString() };
+      }));
+    } catch (err) {
+      console.error('Error removing member:', err);
+      throw err;
+    }
   }, []);
 
   const changeMemberRole = useCallback(async (groupId: string, memberId: string, role: GroupRole) => {
@@ -122,14 +195,48 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const joinGroup = useCallback(async (groupId: string) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    // joining is contextual (requires current user) — left as a stub for UI to call addMember
+  const joinGroup = useCallback(async (groupId: string, userId: string) => {
+    try {
+      await joinGroup(groupId, userId);
+      
+      setGroups(prev => prev.map(g => {
+        if (g.id !== groupId) return g;
+        return { 
+          ...g, 
+          members: [
+            ...g.members,
+            {
+              id: `m_${userId}`,
+              user: { id: userId } as User,
+              role: 'Viewer',
+              joinedAt: new Date().toISOString(),
+            }
+          ],
+          updatedAt: new Date().toISOString() 
+        };
+      }));
+    } catch (err) {
+      console.error('Error joining group:', err);
+      throw err;
+    }
   }, []);
 
-  const leaveGroup = useCallback(async (groupId: string) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    // leaving is contextual — left as a stub for UI
+  const leaveGroup = useCallback(async (groupId: string, userId: string) => {
+    try {
+      await leaveGroup(groupId, userId);
+      
+      setGroups(prev => prev.map(g => {
+        if (g.id !== groupId) return g;
+        return { 
+          ...g, 
+          members: g.members.filter(m => m.user.id !== userId),
+          updatedAt: new Date().toISOString() 
+        };
+      }));
+    } catch (err) {
+      console.error('Error leaving group:', err);
+      throw err;
+    }
   }, []);
 
   const createProject = useCallback(async (p: Partial<Project>) => {

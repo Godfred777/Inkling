@@ -7,22 +7,36 @@ import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Plus, Users, FolderOpen, CheckCircle2 } from 'lucide-react';
+import { Plus, Users, FolderOpen, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GroupsPage() {
-  const { groups, projects, tasks, deleteGroup, createGroup } = useGroups();
+  const { groups, projects, tasks, deleteGroup, createGroup, loading } = useGroups();
   const [newGroupName, setNewGroupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
     setIsCreating(true);
+    setError(null);
     try {
       await createGroup({ name: newGroupName, description: '' });
       setNewGroupName('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create group');
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDeleteGroup = async (groupId: string) => {
+    if (confirm('Are you sure you want to delete this group? This action cannot be undone.')) {
+      try {
+        await deleteGroup(groupId);
+      } catch (err: any) {
+        setError(err.message || 'Failed to delete group');
+      }
     }
   };
 
@@ -32,6 +46,19 @@ export default function GroupsPage() {
         <Header title="Groups" subtitle="Manage and organize your teams" />
 
         <div className="max-w-6xl mx-auto px-6 py-8">
+          {error && (
+            <div className="mb-6 p-4 bg-error/10 border border-error rounded-lg text-error">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <span className="ml-3 text-on-surface-variant">Loading groups...</span>
+            </div>
+          ) : (
+            <>
           {/* Create Group Card */}
           <Card className="p-6 mb-8">
             <h3 className="text-lg font-semibold mb-4">Create New Group</h3>
@@ -43,10 +70,11 @@ export default function GroupsPage() {
                 placeholder="Enter group name..."
                 className="flex-1 px-3 py-2 rounded-lg border bg-surface text-on-surface"
                 onKeyPress={(e) => e.key === 'Enter' && handleCreateGroup()}
+                disabled={isCreating}
               />
               <Button onClick={handleCreateGroup} disabled={isCreating || !newGroupName.trim()}>
                 <Plus className="w-4 h-4 mr-2" />
-                Create
+                {isCreating ? 'Creating...' : 'Create'}
               </Button>
             </div>
           </Card>
@@ -101,7 +129,12 @@ export default function GroupsPage() {
                           </div>
                         )}
                       </div>
-                      <Button variant="secondary" size="sm" onClick={(e) => { e.preventDefault(); deleteGroup(group.id); }}>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        onClick={(e) => { e.preventDefault(); handleDeleteGroup(group.id); }}
+                        disabled={isCreating}
+                      >
                         Delete
                       </Button>
                     </div>
@@ -111,12 +144,14 @@ export default function GroupsPage() {
             })}
           </div>
 
-          {groups.length === 0 && (
+          {groups.length === 0 && !loading && (
             <Card className="p-12 text-center">
               <Users className="w-16 h-16 text-on-surface-variant/30 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-on-surface mb-2">No groups yet</h3>
               <p className="text-on-surface-variant mb-6">Create your first group to get started with team collaboration</p>
             </Card>
+          )}
+          </>
           )}
         </div>
       </div>

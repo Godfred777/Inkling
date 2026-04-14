@@ -12,7 +12,7 @@ export const supabase = createClient(supabaseUrl!, supabaseKey!);
  * @return A promise that resolves to the created group object.
  * @throws An error if the group creation fails.
  */
-export async function createGroup(name: string, description?: string) {
+export async function createNewGroup(name: string, description?: string) {
     try {
         const { data, error } = await supabase
             .from('groups')
@@ -345,7 +345,7 @@ export async function getGroupMembers(groupId: string) {
  * @return A promise that resolves to the updated group object.
  * @throws An error if the update fails.
  */
-export async function updateGroup(groupId: string, name?: string, description?: string) {
+export async function updateExistingGroup(groupId: string, name?: string, description?: string) {
     try {
         const updates: { name?: string; description?: string } = {};
         if (name) updates.name = name;
