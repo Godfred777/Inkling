@@ -166,6 +166,8 @@ export interface GroupContextType {
   groups: Group[];
   projects: Project[];
   tasks: Task[];
+  loading: boolean;
+  error: string | null;
   createGroup: (g: Partial<Group>) => Promise<Group>;
   updateGroup: (id: string, data: Partial<Group>) => Promise<Group>;
   deleteGroup: (id: string) => Promise<void>;

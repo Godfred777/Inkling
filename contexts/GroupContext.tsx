@@ -339,6 +339,8 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     groups,
     projects,
     tasks,
+    loading,
+    error,
     createGroup,
     updateGroup,
     deleteGroup,
