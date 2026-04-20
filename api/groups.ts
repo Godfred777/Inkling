@@ -14,9 +14,20 @@ export const supabase = createClient(supabaseUrl!, supabaseKey!);
  */
 export async function createNewGroup(name: string, description?: string) {
     try {
+
+        const user = await supabase.auth.getUser()
+        if (!user) {
+            throw new Error('User not authenticated');
+        }
+        
+        const userID = user.data?.user?.id;
+        if (!userID) {
+            throw new Error('User ID not found');
+        }
+
         const { data, error } = await supabase
             .from('groups')
-            .insert({ name, description })
+            .upsert({ name, description, owner_id: userID})
             .select()
             .single();
         if (error) {
