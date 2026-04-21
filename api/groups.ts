@@ -47,7 +47,7 @@ export async function createNewGroup(name: string, description?: string) {
 
 export async function getGroupsWithUser() {
     try {
-        const user = supabase.auth.getUser();
+        const user = await supabase.auth.getUser();
         if (!user) {
             throw new Error('User not authenticated');
         }
