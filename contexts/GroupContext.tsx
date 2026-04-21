@@ -15,6 +15,14 @@ import {
   deleteGroup 
 } from '@/api/groups';
 import { useAuth } from './AuthContext';
+import {
+  getProjectsByUser,
+  getProjectsByGroupMembership,
+  createProject as createProjectApi,
+  updateProject as updateProjectApi,
+  deleteProject as deleteProjectApi,
+  getProjectById
+} from '@/api/projects';
 
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
 
@@ -31,9 +39,9 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch groups when user authenticates
+  // Fetch groups and projects when user authenticates
   useEffect(() => {
-    const fetchGroups = async () => {
+    const fetchGroupsAndProjects = async () => {
       if (!user) {
         setGroups([]);
         setProjects([]);
@@ -46,9 +54,13 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
         setLoading(true);
         setError(null);
         
-        const groupsData = await getGroupsWithUser();
+        const [groupsData, projectsData, groupProjectsData] = await Promise.all([
+          getGroupsWithUser(),
+          getProjectsByUser(),
+          getProjectsByGroupMembership()
+        ]);
         
-        // Transform Supabase data to app format
+        // Transform Supabase groups data to app format
         const transformedGroups: Group[] = groupsData.map((g: any) => ({
           id: g.id.toString(),
           name: g.name,
@@ -66,17 +78,60 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
         }));
         
         setGroups(transformedGroups);
+
+        // Transform and merge projects data (user projects + group projects)
+        const allProjectIds = new Set();
+        const transformedProjects: Project[] = [];
+
+        // Process user's created projects
+        if (projectsData) {
+          projectsData.forEach((p: any) => {
+            allProjectIds.add(p.id.toString());
+            transformedProjects.push({
+              id: p.id.toString(),
+              name: p.name,
+              description: p.description || '',
+              createdAt: p.created_at || new Date().toISOString(),
+              updatedAt: p.updated_at || new Date().toISOString(),
+              members: [], // Will be populated from group members if applicable
+              taskCount: 0,
+              groupId: p.group_id?.toString(),
+            });
+          });
+        }
+
+        // Process group membership projects (avoid duplicates)
+        if (groupProjectsData) {
+          groupProjectsData.forEach((p: any) => {
+            const projectId = p.id.toString();
+            if (!allProjectIds.has(projectId)) {
+              allProjectIds.add(projectId);
+              transformedProjects.push({
+                id: projectId,
+                name: p.name,
+                description: p.description || '',
+                createdAt: p.created_at || new Date().toISOString(),
+                updatedAt: p.updated_at || new Date().toISOString(),
+                members: [], // Will be populated from group members
+                taskCount: 0,
+                groupId: p.group_id?.toString(),
+              });
+            }
+          });
+        }
+
+        setProjects(transformedProjects);
       } catch (err) {
-        console.error('Error fetching groups:', err);
-        setError('Failed to load groups. Please try again.');
-        // Fallback to empty state
+        console.error('Error fetching groups and projects:', err);
+        setError('Failed to load data. Please try again.');
         setGroups([]);
+        setProjects([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchGroups();
+    fetchGroupsAndProjects();
   }, [user]);
 
   useEffect(() => {
@@ -240,55 +295,83 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const createProject = useCallback(async (p: Partial<Project>) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    const id = 'p_' + Date.now();
-
-    // Determine members: prefer explicit members passed in, otherwise inherit group's members
-    let projectMembers = p.members || [];
-
-    if (p.groupId) {
-      setGroups(prev => {
-        const grp = prev.find(g => g.id === p.groupId);
-        if (grp) {
-          if (!projectMembers || projectMembers.length === 0) {
-            projectMembers = grp.members.map(m => m.user);
-          }
-          return prev.map(g => g.id === p.groupId ? { ...g, projectIds: [...g.projectIds, id], updatedAt: new Date().toISOString() } : g);
-        }
-        return prev;
-      });
+    try {
+      const newProjectData = await createProjectApi(
+        p.name || 'New Project',
+        p.description,
+        p.groupId
+      );
+      
+      const newProject: Project = {
+        id: newProjectData.id.toString(),
+        name: newProjectData.name,
+        description: newProjectData.description || '',
+        createdAt: newProjectData.created_at || new Date().toISOString(),
+        updatedAt: newProjectData.updated_at || new Date().toISOString(),
+        members: [], // Will be populated from group members if applicable
+        taskCount: 0,
+        groupId: p.groupId,
+      };
+      
+      setProjects(prev => [newProject, ...prev]);
+      
+      // Update group's projectIds if this project belongs to a group
+      if (p.groupId) {
+        setGroups(prev => prev.map(g => 
+          g.id === p.groupId 
+            ? { ...g, projectIds: [...g.projectIds, newProject.id], updatedAt: new Date().toISOString() } 
+            : g
+        ));
+      }
+      
+      return newProject;
+    } catch (err) {
+      console.error('Error creating project:', err);
+      throw err;
     }
-
-    const newProject: Project = {
-      id,
-      name: p.name || 'New Project',
-      description: p.description || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      members: projectMembers,
-      taskCount: 0,
-      groupId: p.groupId,
-    };
-
-    setProjects(prev => [newProject, ...prev]);
-    return newProject;
   }, []);
 
   const updateProject = useCallback(async (id: string, data: Partial<Project>) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    let updated: Project | undefined;
-    setProjects(prev => prev.map(p => {
-      if (p.id !== id) return p;
-      updated = { ...p, ...data, updatedAt: new Date().toISOString() };
-      return updated!;
-    }));
-    return updated as Project;
+    try {
+      const updatedData = await updateProjectApi(
+        id,
+        data.name,
+        data.description,
+        data.groupId
+      );
+      
+      let updated: Project | undefined;
+      setProjects(prev => prev.map(p => {
+        if (p.id !== id) return p;
+        updated = {
+          ...p,
+          name: updatedData.name,
+          description: updatedData.description || p.description,
+          groupId: updatedData.group_id !== undefined ? updatedData.group_id?.toString() : p.groupId,
+          updatedAt: updatedData.updated_at || new Date().toISOString(),
+        };
+        return updated!;
+      }));
+      return updated as Project;
+    } catch (err) {
+      console.error('Error updating project:', err);
+      throw err;
+    }
   }, []);
 
   const deleteProject = useCallback(async (id: string) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    setProjects(prev => prev.filter(p => p.id !== id));
-    setGroups(prev => prev.map(g => ({ ...g, projectIds: g.projectIds.filter(pid => pid !== id), updatedAt: new Date().toISOString() })));
+    try {
+      await deleteProjectApi(id);
+      setProjects(prev => prev.filter(p => p.id !== id));
+      setGroups(prev => prev.map(g => ({ 
+        ...g, 
+        projectIds: g.projectIds.filter(pid => pid !== id), 
+        updatedAt: new Date().toISOString() 
+      })));
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      throw err;
+    }
   }, []);
 
   const createTask = useCallback(async (t: Partial<Task>) => {

@@ -6,10 +6,8 @@ import { Header } from '@/components/ui/Header';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
-import { Avatar } from '@/components/ui/Avatar';
-import { users } from '@/lib/dummyData';
 import { useGroups } from '@/contexts/GroupContext';
-import { ArrowLeft, Users, Plus, X } from 'lucide-react';
+import { ArrowLeft, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function CreateProjectPage() {
@@ -17,40 +15,30 @@ export default function CreateProjectPage() {
   const { createProject, groups } = useGroups();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const toggleMember = (userId: string) => {
-    setSelectedMembers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
-  };
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     
     try {
-      const selectedMembersObjects = users.filter(u => selectedMembers.includes(u.id));
       await createProject({ 
         name, 
         description, 
-        members: selectedMembersObjects,
         groupId: selectedGroupId || undefined
       });
       
       router.push('/projects/');
-    } catch (error) {
-      console.error('Project creation failed:', error);
+    } catch (err) {
+      console.error('Project creation failed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create project');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const availableMembers = users.filter(u => !selectedMembers.includes(u.id));
 
   return (
     <div className="flex min-h-screen">
@@ -75,6 +63,12 @@ export default function CreateProjectPage() {
             </Button>
 
             <form onSubmit={handleSubmit}>
+              {error && (
+                <div className="mb-6 p-4 bg-error-container border border-error rounded-md">
+                  <p className="text-body-md text-on-error-container">{error}</p>
+                </div>
+              )}
+
               <Card variant="default" className="mb-6">
                 <CardHeader>
                   <CardTitle>Project Information</CardTitle>
@@ -130,82 +124,24 @@ export default function CreateProjectPage() {
                 </CardContent>
               </Card>
 
-              <Card variant="default" className="mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    Team Members
-                  </CardTitle>
-                  <CardDescription>Select team members to collaborate on this project</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Selected Members */}
-                  {selectedMembers.length > 0 && (
-                    <div>
-                      <h4 className="text-label-md font-medium text-on-surface-variant mb-3">
-                        Selected Members ({selectedMembers.length})
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedMembers.map(memberId => {
-                          const member = users.find(u => u.id === memberId);
-                          if (!member) return null;
-                          return (
-                            <div
-                              key={memberId}
-                              className="flex items-center gap-2 px-3 py-2 bg-surface-container-high rounded-md"
-                            >
-                              <Avatar user={member} size="sm" />
-                              <span className="text-body-sm text-on-surface">{member.name}</span>
-                              <button
-                                type="button"
-                                onClick={() => toggleMember(memberId)}
-                                className="text-on-surface-variant hover:text-on-surface"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Available Members */}
-                  <div>
-                    <h4 className="text-label-md font-medium text-on-surface-variant mb-3">
-                      Available Members
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      {availableMembers.map(member => (
-                        <button
-                          key={member.id}
-                          type="button"
-                          onClick={() => toggleMember(member.id)}
-                          className={cn(
-                            'flex items-center gap-3 p-3 rounded-md border transition-all',
-                            'hover:bg-surface-container hover:border-outline-variant/30',
-                            selectedMembers.includes(member.id)
-                              ? 'bg-surface-container-high border-outline-variant/40'
-                              : 'bg-surface-container-lowest border-outline-variant/20'
-                          )}
-                        >
-                          <Avatar user={member} size="sm" />
-                          <div className="flex-1 text-left">
-                            <p className="text-body-sm font-medium text-on-surface">{member.name}</p>
-                            <p className="text-label-sm text-on-surface-variant">{member.role}</p>
-                          </div>
-                          <Plus className={cn(
-                            'w-4 h-4',
-                            selectedMembers.includes(member.id)
-                              ? 'text-on-surface-variant'
-                              : 'text-primary'
-                          )} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {selectedGroupId && (
+                <Card variant="default" className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      Team Members
+                    </CardTitle>
+                    <CardDescription>
+                      Team members will be automatically added from the selected group
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-body-sm text-on-surface-variant">
+                      All members of "{groups.find(g => g.id === selectedGroupId)?.name}" will have access to this project.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3">

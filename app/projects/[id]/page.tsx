@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/ui/Header';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Avatar, AvatarGroup } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
-import { projects, tasks, users } from '@/lib/dummyData';
+import { useGroups } from '@/contexts/GroupContext';
 import { 
   ArrowLeft, 
   Plus, 
@@ -24,28 +24,46 @@ import {
 import { cn } from '@/lib/utils';
 import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
 
-type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
-
-interface AIInsight {
-  id: string;
-  content: string;
-  type: 'pro-tip' | 'risk-alert' | 'suggestion';
-  taskId?: string;
-}
-
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { projects, tasks } = useGroups();
   const projectId = params.id as string;
   
   const [showAIInsights, setShowAIInsights] = useState(false);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<typeof tasks[0] | null>(null);
+  const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
 
-  // Find the project (in real app, fetch from API)
-  const project = projects.find(p => p.id === projectId) || projects[0];
+  // Find the project from context
+  const project = projects.find(p => p.id === projectId);
   const projectTasks = tasks.filter(t => t.projectId === projectId);
+
+  useEffect(() => {
+    if (!project) {
+      // Project not found, redirect to projects list
+      router.push('/projects');
+    }
+  }, [project, router]);
+
+  if (!project) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="flex-1 ml-64">
+          <Header 
+            title="Project Not Found" 
+            subtitle="The project you're looking for doesn't exist"
+          />
+          <main className="p-8">
+            <Button onClick={() => router.push('/projects')}>
+              Back to Projects
+            </Button>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   const statusColors = {
     'todo': 'bg-surface-container-high',
@@ -69,9 +87,17 @@ export default function ProjectDetailPage() {
 
   const stats = {
     total: projectTasks.length,
-    completed: projectTasks.filter(t => t.status === 'done').length,
-    inProgress: projectTasks.filter(t => t.status === 'in-progress').length,
-    atRisk: projectTasks.filter(t => t.priority === 'high' && t.status !== 'done').length,
+    completed: projectTasks.filter((t: any) => t.status === 'done').length,
+    inProgress: projectTasks.filter((t: any) => t.status === 'in-progress').length,
+    atRisk: projectTasks.filter((t: any) => t.priority === 'high' && t.status !== 'done').length,
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   const handleGenerateAIInsights = async () => {
@@ -87,7 +113,7 @@ export default function ProjectDetailPage() {
     setShowTaskModal(true);
   };
 
-  const handleTaskCreated = (newTask: typeof tasks[0]) => {
+  const handleTaskCreated = (newTask: any) => {
     // In real app, this would update state or refetch from API
     console.log('New task created:', newTask);
     setShowTaskModal(false);
@@ -108,10 +134,10 @@ export default function ProjectDetailPage() {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/projects')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              Back to Projects
             </Button>
             <div className="flex items-center gap-2">
               <Button 
@@ -238,7 +264,7 @@ export default function ProjectDetailPage() {
                               <div className="flex items-center gap-4 text-sm text-on-surface-variant">
                                 <span className="flex items-center gap-1">
                                   <Calendar className="w-3 h-3" />
-                                  {task.dueDate}
+                                  {formatDate(task.dueDate)}
                                 </span>
                                 {task.assignee && (
                                   <Avatar user={task.assignee} size="sm" />
@@ -280,7 +306,15 @@ export default function ProjectDetailPage() {
                   <CardDescription>Project collaborators</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <AvatarGroup users={project.members} size="md" />
+                  {project.members && project.members.length > 0 ? (
+                    <AvatarGroup users={project.members} size="md" />
+                  ) : (
+                    <p className="text-body-sm text-on-surface-variant">
+                      {project.groupId 
+                        ? 'Members will be added from the group'
+                        : 'No team members yet'}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -372,12 +406,18 @@ export default function ProjectDetailPage() {
                 <CardContent className="space-y-3">
                   <div>
                     <p className="text-label-sm text-on-surface-variant mb-1">Created</p>
-                    <p className="text-body-sm text-on-surface">{project.createdAt}</p>
+                    <p className="text-body-sm text-on-surface">{formatDate(project.createdAt)}</p>
                   </div>
                   <div>
                     <p className="text-label-sm text-on-surface-variant mb-1">Last Updated</p>
-                    <p className="text-body-sm text-on-surface">{project.updatedAt}</p>
+                    <p className="text-body-sm text-on-surface">{formatDate(project.updatedAt)}</p>
                   </div>
+                  {project.groupId && (
+                    <div>
+                      <p className="text-label-sm text-on-surface-variant mb-1">Group</p>
+                      <Badge variant="default">Group Project</Badge>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

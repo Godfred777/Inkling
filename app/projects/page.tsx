@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export default function ProjectsPage() {
-  const { projects, groups } = useGroups();
+  const { projects, groups, loading } = useGroups();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'completed'>('all');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
@@ -28,6 +28,19 @@ export default function ProjectsPage() {
     return matchesSearch && matchesFilter && matchesGroup;
   });
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+    return `${Math.floor(diffDays / 365)} years ago`;
+  };
+
   return (
     <div className="flex min-h-screen">
       <Sidebar />
@@ -38,6 +51,12 @@ export default function ProjectsPage() {
         />
         
         <main className="p-8">
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+          <>
           {/* Action Bar */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3 flex-1 max-w-md">
@@ -130,7 +149,7 @@ export default function ProjectsPage() {
                         <div className="flex items-center gap-4 text-label-sm text-on-surface-variant">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            Created {project.createdAt}
+                            {formatDate(project.createdAt)}
                           </span>
                         </div>
                       </div>
@@ -140,9 +159,11 @@ export default function ProjectsPage() {
                           <Badge variant="primary" size="sm">
                             Active
                           </Badge>
-                          <Badge variant="default" size="sm">
-                            {project.members.length} members
-                          </Badge>
+                          {project.groupId && (
+                            <Badge variant="default" size="sm">
+                              {groups.find(g => g.id === project.groupId)?.name || 'Group'}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -150,6 +171,8 @@ export default function ProjectsPage() {
                 </Link>
               ))}
             </div>
+          )}
+          </>
           )}
         </main>
       </div>
