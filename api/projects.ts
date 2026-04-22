@@ -72,15 +72,10 @@ export async function getProjectsByUser() {
 
         const { data, error } = await supabase
             .from('projects')
-            .select(`
-                *,
-                group_members(user_id)
-            `)
+            .select(`*, groups(owner_id)`)
             .eq('creator_id', userID);
-                
-        if (error) {
-            throw error;
-        }
+
+        if (error) throw error;
         return data;
     } catch (error) {
         console.error('Error fetching projects:', error);
@@ -106,22 +101,22 @@ export async function getProjectsByGroupMembership() {
             throw new Error('User ID not found');
         }
 
-        // Using !inner allows us to filter the top-level 'projects' 
-        // based on the existence of a record in the joined 'group_members' table.
+        // Projects and group_members are not directly related.
+        // We must join through the 'groups' table to verify membership.
         const { data, error } = await supabase
             .from('projects')
             .select(`
                 *,
-                group_members!inner(user_id)
+                groups!inner(
+                    group_members!inner(user_id)
+                )
             `)
-            .eq('group_members.user_id', userID);
+            .eq('groups.group_members.user_id', userID);
 
-        if (error) {
-            throw error;
-        }
+        if (error) throw error;
         return data;
-
     } catch (error) {
+        console.error('Error fetching group projects:', error);
         throw error;
     }
 }
