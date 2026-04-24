@@ -169,6 +169,8 @@ export interface GroupContextType {
   loading: boolean;
   error: string | null;
   createGroup: (g: Partial<Group>) => Promise<Group>;
+  usersGroups: () => Promise<Group[] | undefined>;
+  groupById: (id: string) => Promise<Group | undefined>;
   updateGroup: (id: string, data: Partial<Group>) => Promise<Group>;
   deleteGroup: (id: string) => Promise<void>;
   addMember: (groupId: string, member: GroupMember, ownerId: string) => Promise<void>;
@@ -177,6 +179,7 @@ export interface GroupContextType {
   joinGroup: (groupId: string, userID: string) => Promise<void>;
   leaveGroup: (groupId: string, userID: string) => Promise<void>;
   createProject: (p: Partial<Project>) => Promise<Project>;
+  viewProjects: () => Promise<Project[] | undefined>;
   updateProject: (id: string, data: Partial<Project>) => Promise<Project>;
   deleteProject: (id: string) => Promise<void>;
   createTask: (t: Partial<Task>) => Promise<Task>;

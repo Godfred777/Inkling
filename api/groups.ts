@@ -1,9 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
-
-export const supabase = createClient(supabaseUrl!, supabaseKey!);
+import { supabase } from "@/lib/supabase/client";
 
 /**
  * Create a group with the specified name and description.
@@ -14,13 +9,12 @@ export const supabase = createClient(supabaseUrl!, supabaseKey!);
  */
 export async function createNewGroup(name: string, description?: string) {
     try {
-
-        const user = await supabase.auth.getUser()
-        if (!user) {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
             throw new Error('User not authenticated');
         }
-        
-        const userID = user.data?.user?.id;
+
+        const userID = user.id;
         if (!userID) {
             throw new Error('User ID not found');
         }
@@ -47,11 +41,6 @@ export async function createNewGroup(name: string, description?: string) {
 
 export async function getGroupsWithUser() {
     try {
-        const user = await supabase.auth.getUser();
-        if (!user) {
-            throw new Error('User not authenticated');
-        }
-
         const { data, error } = await supabase
             .from('groups')
             .select(`

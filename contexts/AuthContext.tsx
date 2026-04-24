@@ -9,9 +9,10 @@ import {
   resetPasswordForEmail,
   updateUserMetadata,
   updateUserPassword,
-  supabase
+  //supabase
 } from '@/api/auth';
-import { users } from '@/lib/dummyData';
+import { supabase } from '@/lib/supabase/client';
+//import { users } from '@/lib/dummyData';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

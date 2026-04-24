@@ -1,9 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
-
-export const supabase = createClient(supabaseUrl!, supabaseKey!);
+import { supabase } from "@/lib/supabase/client";
 
 /**
  * Updates the current user's metadata using Supabase.

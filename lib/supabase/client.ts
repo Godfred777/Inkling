@@ -8,3 +8,6 @@ export const createClient = () =>
     supabaseUrl!,
     supabaseKey!,
   );
+
+// Export a single instance to be used throughout the app to prevent lock contention
+export const supabase = createClient();

@@ -11,20 +11,23 @@ import { Plus, Users, FolderOpen, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GroupsPage() {
-  const { groups, projects, tasks, deleteGroup, createGroup, loading } = useGroups();
+  const { groups=[], projects=[], tasks=[], deleteGroup, createGroup, loading, error:contextError } = useGroups();
   const [newGroupName, setNewGroupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+//Consolidate errors from context and local actions
+  const displayError = localError || contextError
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
     setIsCreating(true);
-    setError(null);
+    setLocalError(null);
     try {
       await createGroup({ name: newGroupName, description: '' });
       setNewGroupName('');
     } catch (err: any) {
-      setError(err.message || 'Failed to create group');
+      setLocalError(err.message || 'Failed to create group');
     } finally {
       setIsCreating(false);
     }
@@ -35,7 +38,7 @@ export default function GroupsPage() {
       try {
         await deleteGroup(groupId);
       } catch (err: any) {
-        setError(err.message || 'Failed to delete group');
+        setLocalError(err.message || 'Failed to delete group');
       }
     }
   };
@@ -46,9 +49,9 @@ export default function GroupsPage() {
         <Header title="Groups" subtitle="Manage and organize your teams" />
 
         <div className="max-w-6xl mx-auto px-6 py-8">
-          {error && (
+          {displayError && (
             <div className="mb-6 p-4 bg-error/10 border border-error rounded-lg text-error">
-              {error}
+              {displayError}
             </div>
           )}
 
@@ -92,7 +95,7 @@ export default function GroupsPage() {
                     <div className="mb-4">
                       <div className="flex items-start justify-between mb-2">
                         <h2 className="text-xl font-semibold text-on-surface">{group.name}</h2>
-                        <Badge variant="primary" size="sm">{group.members.length}</Badge>
+                        <Badge variant="primary" size="sm">{group.members?.length || 0}</Badge>
                       </div>
                       <p className="text-sm text-on-surface-variant">{group.description || 'No description'}</p>
                     </div>
@@ -100,39 +103,43 @@ export default function GroupsPage() {
                     <div className="space-y-3 flex-1">
                       <div className="flex items-center gap-2 text-sm">
                         <Users className="w-4 h-4 text-primary" />
-                        <span className="text-on-surface-variant">{group.members.length} members</span>
+                        <span className="text-on-surface-variant">{group.members?.length || 0} members</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <FolderOpen className="w-4 h-4 text-primary" />
-                        <span className="text-on-surface-variant">{groupProjects.length} projects</span>
+                        <span className="text-on-surface-variant">{groupProjects?.length || 0} projects</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-primary" />
-                        <span className="text-on-surface-variant">{completedTasks.length}/{groupTasks.length} tasks done</span>
+                        <span className="text-on-surface-variant">{completedTasks?.length || 0}/{groupTasks?.length || 0} tasks done</span>
                       </div>
                     </div>
 
                     <div className="mt-4 flex items-center justify-between pt-4 border-t border-on-surface-variant/10">
                       <div className="flex -space-x-2">
-                        {group.members.slice(0, 3).map((m) => (
+                        {group.members?.slice(0, 3).map((m) => (
                           <div
                             key={m.id}
                             className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container text-xs flex items-center justify-center border-2 border-surface"
-                            title={m.user.name}
+                            title={m.user?.name || 'User'}
                           >
-                            {m.user.name.charAt(0)}
+                            {m.user?.name?.charAt(0) || '?'}
                           </div>
                         ))}
-                        {group.members.length > 3 && (
+                        {(group.members?.length || 0) > 3 && (
                           <div className="w-8 h-8 rounded-full bg-surface-container text-on-surface-variant text-xs flex items-center justify-center border-2 border-surface font-semibold">
-                            +{group.members.length - 3}
+                            +{(group.members?.length || 0) - 3}
                           </div>
                         )}
                       </div>
                       <Button 
                         variant="secondary" 
                         size="sm" 
-                        onClick={(e) => { e.preventDefault(); handleDeleteGroup(group.id); }}
+                        onClick={(e) => { 
+                          e.preventDefault(); 
+                          e.stopPropagation(); // Prevent Link navigation
+                          handleDeleteGroup(group.id); 
+                        }}
                         disabled={isCreating}
                       >
                         Delete

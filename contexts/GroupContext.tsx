@@ -169,6 +169,56 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const usersGroups = useCallback(async () => {
+    try {
+      const groupsData = await getGroupsWithUser();
+      const transformedGroups: Group[] = groupsData.map((g: any) => ({
+        id: g.id.toString(),
+        name: g.name,
+        description: g.description || '',
+        owners: [],
+        members: g.group_members?.map((m: any) => ({
+          id: m.id?.toString() || `m_${m.user_id}`,
+          user: {
+            id: m.user_id,
+            email: m.users?.email,
+            name: m.users?.name || 'User',
+          } as User,
+          role: m.role || 'Viewer',
+          joinedAt: m.created_at || new Date().toISOString(),
+        })) || [],
+        projectIds: [],
+        createdAt: g.created_at || new Date().toISOString(),
+        updatedAt: g.updated_at || new Date().toISOString(),
+      }));
+      setGroups(transformedGroups);
+      return transformedGroups;
+    } catch (err) {
+      console.error('Error fetching groups:', err);
+      setError('Failed to load groups. Please try again.');
+    }
+  }, []);
+
+  const groupById = useCallback(async (id: string) => {
+    try {
+      const groupData = await getGroupById(id);
+      const group: Group = {
+        id: groupData.id.toString(),
+        name: groupData.name,
+        description: groupData.description || '',
+        owners: [],
+        members: [],
+        projectIds: [],
+        createdAt: groupData.created_at || new Date().toISOString(),
+        updatedAt: groupData.updated_at || new Date().toISOString(),
+      };
+      return group;
+    } catch (err) {
+      console.error('Error fetching group:', err);
+      throw err;
+    }
+  }, []);
+
   const updateGroup = useCallback(async (id: string, data: Partial<Group>) => {
     try {
       const updatedData = await updateExistingGroup(id, data.name, data.description);
@@ -331,6 +381,29 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const viewProjects = useCallback(
+    async () => {
+      try {
+        const projectsData = await getProjectsByUser();
+        const transformedProjects: Project[] = projectsData.map((p: any) => ({
+          id: p.id.toString ? p.id.toString : p.id,
+          name: p.name,
+          description: p.description || '',
+          createdAt: p.created_at || new Date().toISOString(),
+          updatedAt: p.updated_at || new Date().toISOString(),
+          members: [],
+          taskCount: 0,
+          groupId: p.group_id?.toString(),
+        }));
+        setProjects(transformedProjects);
+        return transformedProjects;
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError('Failed to load projects. Please try again.');
+      }
+    }, []
+  );
+
   const updateProject = useCallback(async (id: string, data: Partial<Project>) => {
     try {
       const updatedData = await updateProjectApi(
@@ -425,6 +498,8 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     loading,
     error,
     createGroup,
+    usersGroups,
+    groupById,
     updateGroup,
     deleteGroup,
     addMember,
@@ -433,6 +508,7 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     joinGroup,
     leaveGroup,
     createProject,
+    viewProjects,
     updateProject,
     deleteProject,
     createTask,
