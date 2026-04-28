@@ -171,6 +171,7 @@ export interface GroupContextType {
   createGroup: (g: Partial<Group>) => Promise<Group>;
   usersGroups: () => Promise<Group[] | undefined>;
   groupById: (id: string) => Promise<Group | undefined>;
+  refreshData: () => Promise<void>;
   updateGroup: (id: string, data: Partial<Group>) => Promise<Group>;
   deleteGroup: (id: string) => Promise<void>;
   addMember: (groupId: string, member: GroupMember, ownerId: string) => Promise<void>;

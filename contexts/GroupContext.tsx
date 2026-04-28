@@ -39,18 +39,16 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch groups and projects when user authenticates
-  useEffect(() => {
-    const fetchGroupsAndProjects = async () => {
-      if (!user) {
-        setGroups([]);
-        setProjects([]);
-        setTasks([]);
-        setLoading(false);
-        return;
-      }
+  const fetchGroupsAndProjects = useCallback(async () => {
+    if (!user) {
+      setGroups([]);
+      setProjects([]);
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
 
-      try {
+    try {
         setLoading(true);
         setError(null);
         
@@ -129,10 +127,12 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchGroupsAndProjects();
   }, [user]);
+
+  // Fetch groups and projects when user authenticates
+  useEffect(() => {
+    fetchGroupsAndProjects();
+  }, [fetchGroupsAndProjects]);
 
   useEffect(() => {
     localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups));
@@ -497,6 +497,7 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     tasks,
     loading,
     error,
+    refreshData: fetchGroupsAndProjects,
     createGroup,
     usersGroups,
     groupById,

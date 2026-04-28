@@ -7,11 +7,11 @@ import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Plus, Users, FolderOpen, CheckCircle2, Loader2 } from 'lucide-react';
+import { Plus, Users, FolderOpen, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GroupsPage() {
-  const { groups=[], projects=[], tasks=[], deleteGroup, createGroup, loading, error:contextError } = useGroups();
+  const { groups=[], projects=[], tasks=[], deleteGroup, createGroup, loading, error:contextError, refreshData } = useGroups();
   const [newGroupName, setNewGroupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -49,6 +49,19 @@ export default function GroupsPage() {
         <Header title="Groups" subtitle="Manage and organize your teams" />
 
         <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="flex justify-end mb-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => refreshData()} 
+              disabled={loading}
+              className="text-on-surface-variant hover:text-primary transition-colors"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh Data
+            </Button>
+          </div>
+
           {displayError && (
             <div className="mb-6 p-4 bg-error/10 border border-error rounded-lg text-error">
               {displayError}
