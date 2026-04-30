@@ -188,3 +188,29 @@ export interface GroupContextType {
   deleteTask: (id: string) => Promise<void>;
   respondToTask: (taskId: string, response: 'accepted' | 'declined') => Promise<void>;
 }
+
+export interface ProjectContextType {
+  projects: Project[];
+  loading: boolean;
+  error: string | null;
+  refreshProjects: () => Promise<void>;
+  createProject: (p: Partial<Project>) => Promise<Project>;
+  getProject: (id: string) => Promise<Project>;
+  updateProject: (id: string, data: Partial<Project>) => Promise<Project>;
+  deleteProject: (id: string) => Promise<void>;
+}
+
+export interface TaskContextType {
+  tasks: Task[];
+  loading: boolean;
+  error: string | null;
+  fetchTasksByProject: (projectId: string) => Promise<Task[]>;
+  fetchTasksByUser: () => Promise<Task[]>;
+  getTask: (id: string) => Promise<Task>;
+  createTask: (t: Partial<Task>) => Promise<Task>;
+  updateTask: (id: string, data: Partial<Task>) => Promise<Task>;
+  updateTaskStatus: (id: string, status: string) => Promise<Task>;
+  assignTask: (taskId: string, assigneeId: string) => Promise<any>;
+  deleteTask: (id: string) => Promise<void>;
+  respondToTask: (taskId: string, response: 'accepted' | 'declined') => Promise<void>;
+}

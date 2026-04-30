@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Group, GroupContextType, GroupMember, GroupRole, Project, Task, User } from '@/types';
+import { Group, GroupContextType, GroupMember, GroupRole, User } from '@/types';
 import { 
   createNewGroup, 
   getGroupsWithUser, 
@@ -15,35 +15,21 @@ import {
   deleteGroup 
 } from '@/api/groups';
 import { useAuth } from './AuthContext';
-import {
-  getProjectsByUser,
-  getProjectsByGroupMembership,
-  createProject as createProjectApi,
-  updateProject as updateProjectApi,
-  deleteProject as deleteProjectApi,
-  getProjectById
-} from '@/api/projects';
 
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
 
 const GROUPS_STORAGE_KEY = 'inkling_groups_v1';
-const PROJECTS_STORAGE_KEY = 'inkling_projects_v1';
-const TASKS_STORAGE_KEY = 'inkling_tasks_v1';
 const MOCK_DELAY = 400;
 
 export function GroupProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchGroupsAndProjects = useCallback(async () => {
+  const fetchGroups = useCallback(async () => {
     if (!user) {
       setGroups([]);
-      setProjects([]);
-      setTasks([]);
       setLoading(false);
       return;
     }
@@ -52,18 +38,13 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
         setLoading(true);
         setError(null);
         
-        const [groupsData, projectsData, groupProjectsData] = await Promise.all([
-          getGroupsWithUser(),
-          getProjectsByUser(),
-          getProjectsByGroupMembership()
-        ]);
+        const groupsData = await getGroupsWithUser();
         
-        // Transform Supabase groups data to app format
         const transformedGroups: Group[] = groupsData.map((g: any) => ({
           id: g.id.toString(),
           name: g.name,
           description: g.description || '',
-          owners: [], // TODO: Get owners from group_members with role
+          owners: [],
           members: g.group_members?.map((m: any) => ({
             id: m.id?.toString() || `m_${m.user_id}`,
             user: { id: m.user_id, email: m.users?.email, name: m.users?.name || 'User' } as User,
@@ -76,75 +57,22 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
         }));
         
         setGroups(transformedGroups);
-
-        // Transform and merge projects data (user projects + group projects)
-        const allProjectIds = new Set();
-        const transformedProjects: Project[] = [];
-
-        // Process user's created projects
-        if (projectsData) {
-          projectsData.forEach((p: any) => {
-            allProjectIds.add(p.id.toString());
-            transformedProjects.push({
-              id: p.id.toString(),
-              name: p.name,
-              description: p.description || '',
-              createdAt: p.created_at || new Date().toISOString(),
-              updatedAt: p.updated_at || new Date().toISOString(),
-              members: [], // Will be populated from group members if applicable
-              taskCount: 0,
-              groupId: p.group_id?.toString(),
-            });
-          });
-        }
-
-        // Process group membership projects (avoid duplicates)
-        if (groupProjectsData) {
-          groupProjectsData.forEach((p: any) => {
-            const projectId = p.id.toString();
-            if (!allProjectIds.has(projectId)) {
-              allProjectIds.add(projectId);
-              transformedProjects.push({
-                id: projectId,
-                name: p.name,
-                description: p.description || '',
-                createdAt: p.created_at || new Date().toISOString(),
-                updatedAt: p.updated_at || new Date().toISOString(),
-                members: [], // Will be populated from group members
-                taskCount: 0,
-                groupId: p.group_id?.toString(),
-              });
-            }
-          });
-        }
-
-        setProjects(transformedProjects);
       } catch (err) {
-        console.error('Error fetching groups and projects:', err);
+        console.error('Error fetching groups:', err);
         setError('Failed to load data. Please try again.');
         setGroups([]);
-        setProjects([]);
       } finally {
         setLoading(false);
       }
   }, [user]);
 
-  // Fetch groups and projects when user authenticates
   useEffect(() => {
-    fetchGroupsAndProjects();
-  }, [fetchGroupsAndProjects]);
+    fetchGroups();
+  }, [fetchGroups]);
 
   useEffect(() => {
     localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups));
   }, [groups]);
-
-  useEffect(() => {
-    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
-  }, [tasks]);
 
   const createGroup = useCallback(async (g: Partial<Group>) => {
     try {
@@ -267,7 +195,6 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
 
   const removeMember = useCallback(async (groupId: string, memberId: string, adminUserId: string) => {
     try {
-      // Find the member to get their user ID
       let memberUserId: string | undefined;
       setGroups(prev => {
         const group = prev.find(g => g.id === groupId);
@@ -344,160 +271,13 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const createProject = useCallback(async (p: Partial<Project>) => {
-    try {
-      const newProjectData = await createProjectApi(
-        p.name || 'New Project',
-        p.description,
-        p.groupId
-      );
-      
-      const newProject: Project = {
-        id: newProjectData.id.toString(),
-        name: newProjectData.name,
-        description: newProjectData.description || '',
-        createdAt: newProjectData.created_at || new Date().toISOString(),
-        updatedAt: newProjectData.updated_at || new Date().toISOString(),
-        members: [], // Will be populated from group members if applicable
-        taskCount: 0,
-        groupId: p.groupId,
-      };
-      
-      setProjects(prev => [newProject, ...prev]);
-      
-      // Update group's projectIds if this project belongs to a group
-      if (p.groupId) {
-        setGroups(prev => prev.map(g => 
-          g.id === p.groupId 
-            ? { ...g, projectIds: [...g.projectIds, newProject.id], updatedAt: new Date().toISOString() } 
-            : g
-        ));
-      }
-      
-      return newProject;
-    } catch (err) {
-      console.error('Error creating project:', err);
-      throw err;
-    }
-  }, []);
-
-  const viewProjects = useCallback(
-    async () => {
-      try {
-        const projectsData = await getProjectsByUser();
-        const transformedProjects: Project[] = projectsData.map((p: any) => ({
-          id: p.id.toString ? p.id.toString : p.id,
-          name: p.name,
-          description: p.description || '',
-          createdAt: p.created_at || new Date().toISOString(),
-          updatedAt: p.updated_at || new Date().toISOString(),
-          members: [],
-          taskCount: 0,
-          groupId: p.group_id?.toString(),
-        }));
-        setProjects(transformedProjects);
-        return transformedProjects;
-      } catch (err) {
-        console.error('Error fetching projects:', err);
-        setError('Failed to load projects. Please try again.');
-      }
-    }, []
-  );
-
-  const updateProject = useCallback(async (id: string, data: Partial<Project>) => {
-    try {
-      const updatedData = await updateProjectApi(
-        id,
-        data.name,
-        data.description,
-        data.groupId
-      );
-      
-      let updated: Project | undefined;
-      setProjects(prev => prev.map(p => {
-        if (p.id !== id) return p;
-        updated = {
-          ...p,
-          name: updatedData.name,
-          description: updatedData.description || p.description,
-          groupId: updatedData.group_id !== undefined ? updatedData.group_id?.toString() : p.groupId,
-          updatedAt: updatedData.updated_at || new Date().toISOString(),
-        };
-        return updated!;
-      }));
-      return updated as Project;
-    } catch (err) {
-      console.error('Error updating project:', err);
-      throw err;
-    }
-  }, []);
-
-  const deleteProject = useCallback(async (id: string) => {
-    try {
-      await deleteProjectApi(id);
-      setProjects(prev => prev.filter(p => p.id !== id));
-      setGroups(prev => prev.map(g => ({ 
-        ...g, 
-        projectIds: g.projectIds.filter(pid => pid !== id), 
-        updatedAt: new Date().toISOString() 
-      })));
-    } catch (err) {
-      console.error('Error deleting project:', err);
-      throw err;
-    }
-  }, []);
-
-  const createTask = useCallback(async (t: Partial<Task>) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    const newTask: Task = {
-      id: 't_' + Date.now(),
-      title: t.title || 'New Task',
-      description: t.description || '',
-      status: t.status || 'todo',
-      priority: t.priority || 'medium',
-      dueDate: t.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      projectId: t.projectId || '',
-      groupId: t.groupId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      assigneeResponse: t.assignee ? 'pending' : undefined,
-    };
-    setTasks(prev => [newTask, ...prev]);
-    if (t.projectId) {
-      setProjects(prev => prev.map(p => p.id === t.projectId ? { ...p, taskCount: p.taskCount + 1, updatedAt: new Date().toISOString() } : p));
-    }
-    return newTask;
-  }, []);
-
-  const updateTask = useCallback(async (id: string, data: Partial<Task>) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    let updated: Task | undefined;
-    setTasks(prev => prev.map(t => {
-      if (t.id !== id) return t;
-      updated = { ...t, ...data, updatedAt: new Date().toISOString() };
-      return updated!;
-    }));
-    return updated as Task;
-  }, []);
-
-  const deleteTask = useCallback(async (id: string) => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    setTasks(prev => prev.filter(t => t.id !== id));
-    setProjects(prev => prev.map(p => p.taskCount > 0 ? { ...p, taskCount: p.taskCount - 1, updatedAt: new Date().toISOString() } : p));
-  }, []);
-
-  const respondToTask = useCallback(async (taskId: string, response: 'accepted' | 'declined') => {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assigneeResponse: response, status: response === 'accepted' ? 'in-progress' : t.status, updatedAt: new Date().toISOString() } : t));
-  }, []);
-
   const value: GroupContextType = {
     groups,
-    projects,
-    tasks,
+    projects: [],
+    tasks: [],
     loading,
     error,
-    refreshData: fetchGroupsAndProjects,
+    refreshData: fetchGroups,
     createGroup,
     usersGroups,
     groupById,
@@ -508,14 +288,30 @@ export function GroupProvider({ children }: { children: React.ReactNode }) {
     changeMemberRole,
     joinGroup,
     leaveGroup,
-    createProject,
-    viewProjects,
-    updateProject,
-    deleteProject,
-    createTask,
-    updateTask,
-    deleteTask,
-    respondToTask,
+    createProject: async () => {
+      throw new Error('createProject is now available in ProjectContext');
+    },
+    viewProjects: async () => {
+      throw new Error('viewProjects is now available in ProjectContext');
+    },
+    updateProject: async () => {
+      throw new Error('updateProject is now available in ProjectContext');
+    },
+    deleteProject: async () => {
+      throw new Error('deleteProject is now available in ProjectContext');
+    },
+    createTask: async () => {
+      throw new Error('createTask is now available in TaskContext');
+    },
+    updateTask: async () => {
+      throw new Error('updateTask is now available in TaskContext');
+    },
+    deleteTask: async () => {
+      throw new Error('deleteTask is now available in TaskContext');
+    },
+    respondToTask: async () => {
+      throw new Error('respondToTask is now available in TaskContext');
+    },
   };
 
   return <GroupContext.Provider value={value}>{children}</GroupContext.Provider>;
