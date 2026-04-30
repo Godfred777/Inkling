@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams } from 'next/navigation';
 import { useGroups } from '@/contexts/GroupContext';
+import { useProjects } from '@/contexts/ProjectContext';
+import { useTasks } from '@/contexts/TaskContext';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { ArrowLeft, Users, Plus, Trash2, Edit2 } from 'lucide-react';
+import { ArrowLeft, Users, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { MemberManagement } from '@/components/groups/MemberManagement';
 
@@ -17,7 +19,9 @@ export default function GroupDetailPage() {
   const params = useParams();
   const router = useRouter();
   const groupId = params.id as string;
-  const { groups, projects, tasks, changeMemberRole, removeMember, updateGroup } = useGroups();
+  const { groups } = useGroups();
+  const { projects } = useProjects();
+  const { tasks } = useTasks();
 
   const group = groups.find(g => g.id === groupId);
   const groupProjects = projects.filter(p => p.groupId === groupId);

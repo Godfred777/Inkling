@@ -7,12 +7,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
 import { useGroups } from '@/contexts/GroupContext';
-import { ArrowLeft, Users, X } from 'lucide-react';
+import { useProjects } from '@/contexts/ProjectContext';
+import { ArrowLeft, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function CreateProjectPage() {
   const router = useRouter();
-  const { createProject, groups } = useGroups();
+  const { createProject } = useProjects();
+  const { groups } = useGroups();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');

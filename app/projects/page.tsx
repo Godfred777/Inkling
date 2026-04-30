@@ -8,12 +8,14 @@ import { AvatarGroup } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
 import { useGroups } from '@/contexts/GroupContext';
+import { useProjects } from '@/contexts/ProjectContext';
 import { Plus, Search, Filter, ArrowRight, Calendar, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export default function ProjectsPage() {
-  const { projects, groups, loading } = useGroups();
+  const { groups } = useGroups();
+  const { projects, loading } = useProjects();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'completed'>('all');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
@@ -71,6 +73,7 @@ export default function ProjectsPage() {
                 />
               </div>
               <select
+                title='Action Call'
                 value={selectedGroupId}
                 onChange={(e) => setSelectedGroupId(e.target.value)}
                 className="px-3 py-2 bg-surface border rounded-md text-on-surface"

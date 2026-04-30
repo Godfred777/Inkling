@@ -133,6 +133,7 @@ export function PreferencesSettings({ onSave }: PreferencesSettingsProps) {
               <p className="text-sm text-on-surface-variant">Receive updates via email</p>
             </div>
             <button
+              title='Email Notification'
               type="button"
               onClick={() => handleNotificationChange('email', !preferences.notifications.email)}
               className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -154,6 +155,7 @@ export function PreferencesSettings({ onSave }: PreferencesSettingsProps) {
               <p className="text-sm text-on-surface-variant">Browser notifications for updates</p>
             </div>
             <button
+              title='Push Notification'
               type="button"
               onClick={() => handleNotificationChange('push', !preferences.notifications.push)}
               className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -175,6 +177,7 @@ export function PreferencesSettings({ onSave }: PreferencesSettingsProps) {
               <p className="text-sm text-on-surface-variant">Notifications for task changes</p>
             </div>
             <button
+              title='Task Notification'
               type="button"
               onClick={() => handleNotificationChange('taskUpdates', !preferences.notifications.taskUpdates)}
               className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -196,6 +199,7 @@ export function PreferencesSettings({ onSave }: PreferencesSettingsProps) {
               <p className="text-sm text-on-surface-variant">Notifications for project activity</p>
             </div>
             <button
+              title='Project Notification'
               type="button"
               onClick={() => handleNotificationChange('projectUpdates', !preferences.notifications.projectUpdates)}
               className={`relative w-12 h-6 rounded-full transition-colors ${

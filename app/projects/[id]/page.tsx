@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Avatar, AvatarGroup } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
+import { useProjects } from '@/contexts/ProjectContext';
+import { useTasks } from '@/contexts/TaskContext';
 import { useGroups } from '@/contexts/GroupContext';
 import { 
   ArrowLeft, 
@@ -27,7 +29,9 @@ import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { projects, tasks } = useGroups();
+  const { projects } = useProjects();
+  const { tasks, fetchTasksByProject } = useTasks();
+  const { groups } = useGroups();
   const projectId = params.id as string;
   
   const [showAIInsights, setShowAIInsights] = useState(false);
@@ -35,9 +39,14 @@ export default function ProjectDetailPage() {
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
 
-  // Find the project from context
   const project = projects.find(p => p.id === projectId);
   const projectTasks = tasks.filter(t => t.projectId === projectId);
+
+  useEffect(() => {
+    if (projectId) {
+      fetchTasksByProject(projectId);
+    }
+  }, [projectId]);
 
   useEffect(() => {
     if (!project) {
@@ -285,7 +294,10 @@ export default function ProjectDetailPage() {
                             )}>
                               {statusLabels[task.status]}
                             </div>
-                            <button className="text-on-surface-variant hover:text-on-surface">
+                            <button 
+                              className="text-on-surface-variant hover:text-on-surface"
+                              aria-label="More options"
+                            >
                               <MoreVertical className="w-4 h-4" />
                             </button>
                           </div>
@@ -418,6 +430,14 @@ export default function ProjectDetailPage() {
                       <Badge variant="default">Group Project</Badge>
                     </div>
                   )}
+                  {project.groupId && (
+                    <div>
+                      <p className="text-label-sm text-on-surface-variant mb-1">Group</p>
+                      <p className="text-body-sm text-on-surface">
+                        {groups.find(g => g.id === project.groupId)?.name || 'Unknown Group'}
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -490,6 +510,7 @@ export default function ProjectDetailPage() {
                       <select
                         name="priority"
                         defaultValue="medium"
+                        title="Task Priority"
                         className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant/20 rounded-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         <option value="low">Low</option>
@@ -505,6 +526,8 @@ export default function ProjectDetailPage() {
                         name="dueDate"
                         type="date"
                         required
+                        title="Task Due Date"
+                        placeholder="Select a date"
                         className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant/20 rounded-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>

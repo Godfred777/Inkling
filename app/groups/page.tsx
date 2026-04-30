@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useGroups } from '@/contexts/GroupContext';
+import { useProjects } from '@/contexts/ProjectContext';
+import { useTasks } from '@/contexts/TaskContext';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
@@ -11,13 +13,15 @@ import { Plus, Users, FolderOpen, CheckCircle2, Loader2, RefreshCw } from 'lucid
 import Link from 'next/link';
 
 export default function GroupsPage() {
-  const { groups=[], projects=[], tasks=[], deleteGroup, createGroup, loading, error:contextError, refreshData } = useGroups();
+  const { groups, deleteGroup, createGroup, loading, error: contextError, refreshData } = useGroups();
+  const { projects, loading: projectsLoading } = useProjects();
+  const { tasks, loading: tasksLoading } = useTasks();
   const [newGroupName, setNewGroupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
-//Consolidate errors from context and local actions
-  const displayError = localError || contextError
+  const displayError = localError || contextError;
+  const isLoading = loading || projectsLoading || tasksLoading;
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
@@ -53,8 +57,10 @@ export default function GroupsPage() {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => refreshData()} 
-              disabled={loading}
+              onClick={() => {
+                refreshData();
+              }} 
+              disabled={isCreating}
               className="text-on-surface-variant hover:text-primary transition-colors"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -68,7 +74,7 @@ export default function GroupsPage() {
             </div>
           )}
 
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
               <span className="ml-3 text-on-surface-variant">Loading groups...</span>
@@ -164,7 +170,7 @@ export default function GroupsPage() {
             })}
           </div>
 
-          {groups.length === 0 && !loading && (
+          {groups.length === 0 && !isLoading && (
             <Card className="p-12 text-center">
               <Users className="w-16 h-16 text-on-surface-variant/30 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-on-surface mb-2">No groups yet</h3>

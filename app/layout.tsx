@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { GroupProvider } from '@/contexts/GroupContext';
+import { ProjectProvider } from '@/contexts/ProjectContext';
+import { TaskProvider } from '@/contexts/TaskContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 export const metadata: Metadata = {
@@ -19,7 +21,11 @@ export default function RootLayout({
       <body className="font-body bg-surface text-on-surface antialiased min-h-screen">
         <AuthProvider>
           <GroupProvider>
-            <ProtectedRoute>{children}</ProtectedRoute>
+            <ProjectProvider>
+              <TaskProvider>
+                <ProtectedRoute>{children}</ProtectedRoute>
+              </TaskProvider>
+            </ProjectProvider>
           </GroupProvider>
         </AuthProvider>
       </body>
