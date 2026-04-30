@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/ui/Header';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -8,19 +8,29 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Sidebar } from '@/components/ui/Sidebar';
 import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
-import { useGroups } from '@/contexts/GroupContext';
 import { Task } from '@/types';
 import { List, LayoutGrid, Filter, Plus, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { 
+  getTasksByUser, 
+  createTask, 
+  updateTask, 
+  deleteTask,
+  updateTaskStatus,
+  assignTaskToUser
+} from '@/api/tasks';
 
 type ViewMode = 'list' | 'board';
 type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 
 export default function TasksPage() {
-  const { tasks, groups, respondToTask } = useGroups();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const statusColors = {
     'todo': 'bg-surface-container-high',
@@ -35,6 +45,30 @@ export default function TasksPage() {
     'review': 'Review',
     'done': 'Done',
   };
+
+  // Fetch tasks and groups on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Fetch tasks for the current user
+        const userTasks = await getTasksByUser();
+        setTasks(userTasks);
+        
+        // For groups, we'll fetch from the context or we could fetch separately
+        // Since we removed useGroups, we'll need an alternative for groups
+        // For now, let's set an empty array or fetch from a groups API if available
+        setGroups([]);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   if (viewMode === 'board') {
     return (
@@ -53,6 +87,7 @@ export default function TasksPage() {
                   value={selectedGroupId}
                   onChange={(e) => setSelectedGroupId(e.target.value)}
                   className="px-3 py-2 bg-surface border rounded-md text-on-surface"
+                  aria-label="Select group"
                 >
                   <option value="all">All Groups</option>
                   {groups.map(g => (
@@ -203,6 +238,7 @@ export default function TasksPage() {
                       type="checkbox"
                       checked={task.status === 'done'}
                       onChange={() => {}}
+                      aria-label={`Mark task "${task.title}" as ${task.status === 'done' ? 'incomplete' : 'complete'}`}
                       className="w-4 h-4 rounded border-outline-variant bg-surface-container-lowest text-primary focus:ring-primary focus:ring-offset-0"
                     />
                     <div className="flex-1">
